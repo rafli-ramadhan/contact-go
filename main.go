@@ -6,11 +6,10 @@ import (
 	"contact-go/handler"
 	"contact-go/helper"
 	"contact-go/repository"
+	"os"
 )
 
-var stopped  bool = false
-
-func Menu() {
+func main() {
 	config := config.LoadConfig()
 
 	var contactRepo repository.ContactRepositorier
@@ -22,7 +21,10 @@ func Menu() {
 	}
 	
 	contactHandler := handler.NewContactHandler(contactRepo)
+	Menu(contactHandler)
+}
 
+func Menu(contactHandler handler.ContactHandlerInterface) {
 	fmt.Println("\nSelect menu")
 	fmt.Println("1. List contact")
 	fmt.Println("2. Add contact")
@@ -38,34 +40,27 @@ func Menu() {
 	case 1 :
 		contactHandler.List()
 		helper.ClearScreeen()
-		Menu()
+		Menu(contactHandler)
 	case 2 :
 		contactHandler.Add()
 		contactHandler.List()
 		helper.ClearScreeen()
-		Menu()
+		Menu(contactHandler)
 	case 3 :
 		contactHandler.List()
 		contactHandler.Update()
 		fmt.Printf("------------Updated Datas------------")
 		contactHandler.List()
 		helper.ClearScreeen()
-		Menu()
+		Menu(contactHandler)
 	case 4 :
 		contactHandler.List()
 		contactHandler.Delete()
 		fmt.Printf("------------Updated Datas------------")
 		contactHandler.List()
 		helper.ClearScreeen()
-		Menu()
+		Menu(contactHandler)
 	case 5:
-		stopped = true
-		return
-	}
-}
-
-func main() {
-	for !stopped {
-		Menu()
+		os.Exit(1)
 	}
 }

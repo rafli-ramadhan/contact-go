@@ -1,6 +1,6 @@
-# Contact-Go (Go + JSON + Vaper)
+# Contact-Go (Go Crud with Slice + JSON)
 
-PT Phincon Exercise Week 2
+PT Phincon Bootcamp Week 3
 
 ## Set up :rocket:
 
