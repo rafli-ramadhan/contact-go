@@ -43,13 +43,13 @@ func (repo *repository) List() (result []model.Contact) {
 	return model.ContactSlice
 }
 
-func (repo *repository) Add(req model.ContactRequest) (err error) {
+func (repo *repository) Add(req model.ContactRequest) (contact model.Contact, err error) {
 	lastID, err := repo.getLastID()
 	if err != nil {
 		return
 	}
 
-	contact := model.Contact{
+	contact = model.Contact{
 		Id:     lastID + 1,
 		Name:   req.Name,
 		NoTelp: req.NoTelp,

@@ -1,8 +1,8 @@
 package model
 
 type ContactRequest struct {
-	Name   string
-	NoTelp string
+	Name   string `json:"name"`
+	NoTelp string `json:"no_telp"`
 }
 
 type Contact struct {

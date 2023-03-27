@@ -45,12 +45,12 @@ func (handler *contactHandler) Add() {
 		Name:   name,
 		NoTelp: no_telp,
 	}
-	err := handler.repo.Add(contactRequest)
+	contact, err := handler.repo.Add(contactRequest)
 	if err != nil {
 		log.Print("\nThere is an error : ", err)
 	}
 	
-	fmt.Println("New data added success")
+	fmt.Println("New data added success with id : ", contact.Id)
 }
 
 func (handler *contactHandler) Update() {

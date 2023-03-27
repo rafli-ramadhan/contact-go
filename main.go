@@ -6,24 +6,52 @@ import (
 	"contact-go/handler"
 	"contact-go/helper"
 	"contact-go/repository"
+	"net/http"
 	"os"
 )
 
 func main() {
 	config := config.LoadConfig()
 
-	var contactRepo repository.ContactRepositorier
 	switch config.Storage {
 	case "json":
-		contactRepo = repository.NewContactJsonRepository()
-	default:
-		contactRepo = repository.NewContactRepository()
+		contactRepo := repository.NewContactJsonRepository()
+		contactHandler := handler.NewContactHttpHandler(contactRepo)
+		HTTPServer(contactHandler)
+	default: // cmd
+		contactRepo := repository.NewContactRepository()
+		contactHandler := handler.NewContactHandler(contactRepo)
+		Menu(contactHandler)
 	}
-	
-	contactHandler := handler.NewContactHandler(contactRepo)
-	Menu(contactHandler)
 }
 
+func HTTPServer(contactHandler handler.ContactHttpHandlerInterface) {
+	config := config.LoadConfig()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/contact", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			contactHandler.List(w, r)
+		} else if r.Method == "POST" {
+			contactHandler.Add(w, r)
+		} else if r.Method == "DELETE" {
+			contactHandler.Delete(w, r)
+		}
+	})
+
+	server := http.Server{
+		Addr: config.Port,
+		Handler: mux,
+	}
+	fmt.Println("Server run on ", server.Addr)
+
+	err := server.ListenAndServe()
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+// Menu function only for CLI used
 func Menu(contactHandler handler.ContactHandlerInterface) {
 	fmt.Println("\nSelect menu")
 	fmt.Println("1. List contact")
