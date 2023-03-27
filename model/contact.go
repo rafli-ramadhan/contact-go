@@ -10,3 +10,5 @@ type Contact struct {
 	Name   string
 	NoTelp string
 }
+
+var ContactSlice []Contact = []Contact{}
