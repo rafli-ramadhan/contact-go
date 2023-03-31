@@ -1,23 +1,26 @@
 package main
 
 import (
-	"fmt"
 	"contact-go/config"
 	"contact-go/handler"
 	"contact-go/helper"
 	"contact-go/repository"
+	"fmt"
 	"net/http"
 	"os"
 )
 
 func main() {
-	config := config.LoadConfig()
+	config, err := config.LoadConfig()
+	if err != nil {
+		panic(err)
+	}
 
 	switch config.Storage {
 	case "json":
 		contactRepo := repository.NewContactJsonRepository()
 		contactHandler := handler.NewContactHttpHandler(contactRepo)
-		HTTPServer(contactHandler)
+		HTTPServer(config, contactHandler)
 	default: // cmd
 		contactRepo := repository.NewContactRepository()
 		contactHandler := handler.NewContactHandler(contactRepo)
@@ -25,9 +28,7 @@ func main() {
 	}
 }
 
-func HTTPServer(contactHandler handler.ContactHttpHandlerInterface) {
-	config := config.LoadConfig()
-
+func HTTPServer(config *config.Config, contactHandler handler.ContactHttpHandlerInterface) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/contact", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
@@ -40,7 +41,7 @@ func HTTPServer(contactHandler handler.ContactHttpHandlerInterface) {
 	})
 
 	server := http.Server{
-		Addr: config.Port,
+		Addr:    config.Port,
 		Handler: mux,
 	}
 	fmt.Println("Server run on ", server.Addr)
@@ -65,23 +66,23 @@ func Menu(contactHandler handler.ContactHandlerInterface) {
 	fmt.Scanln(&choose)
 
 	switch choose {
-	case 1 :
+	case 1:
 		contactHandler.List()
 		helper.ClearScreeen()
 		Menu(contactHandler)
-	case 2 :
+	case 2:
 		contactHandler.Add()
 		contactHandler.List()
 		helper.ClearScreeen()
 		Menu(contactHandler)
-	case 3 :
+	case 3:
 		contactHandler.List()
 		contactHandler.Update()
 		fmt.Printf("------------Updated Datas------------")
 		contactHandler.List()
 		helper.ClearScreeen()
 		Menu(contactHandler)
-	case 4 :
+	case 4:
 		contactHandler.List()
 		contactHandler.Delete()
 		fmt.Printf("------------Updated Datas------------")
