@@ -35,6 +35,8 @@ func HTTPServer(config *config.Config, contactHandler handler.ContactHttpHandler
 			contactHandler.List(w, r)
 		} else if r.Method == "POST" {
 			contactHandler.Add(w, r)
+		} else if r.Method == "PATCH" {
+			contactHandler.Update(w, r)
 		} else if r.Method == "DELETE" {
 			contactHandler.Delete(w, r)
 		}
@@ -44,8 +46,8 @@ func HTTPServer(config *config.Config, contactHandler handler.ContactHttpHandler
 		Addr:    config.Port,
 		Handler: mux,
 	}
-	fmt.Println("Server run on ", server.Addr)
 
+	fmt.Println("Server run on ", server.Addr)
 	err := server.ListenAndServe()
 	if err != nil {
 		panic(err.Error())

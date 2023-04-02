@@ -14,6 +14,8 @@ type Config struct {
 
 func LoadConfig() (*Config, error) {
 	viper.SetConfigFile(".env")
+
+	// search defined path of file
 	err := viper.ReadInConfig()
 	if err != nil {
 		_, ok := err.(viper.ConfigFileNotFoundError)
@@ -23,6 +25,7 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("fatal error config file %s", err)
 	}
 
+	// unmarshal parameter file .env to struct
 	config := Config{}
 	err = viper.Unmarshal(&config)
 	if err != nil {

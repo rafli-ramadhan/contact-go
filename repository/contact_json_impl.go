@@ -51,7 +51,7 @@ func (repo *contactjson) GetIndexById(id int) (index int, value model.Contact, e
 
 func (repo *contactjson) updateJSON(list []model.Contact) (err error) {
 	// struct -> JSON
-	write, err := os.Create("data/contact.json")
+	write, err := os.Create("data/contact.txt")
 	if err != nil {
 		return
 	}
@@ -62,7 +62,7 @@ func (repo *contactjson) updateJSON(list []model.Contact) (err error) {
 
 func (repo *contactjson) List() (result []model.Contact) {
 	// JSON -> struct
-	reader, err := os.Open("data/contact.json")
+	reader, err := os.Open("data/contact.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -118,7 +118,7 @@ func (repo *contactjson) Update(id int, req model.ContactRequest) (err error) {
 	}
 
 	list[index] = model.Contact{
-		Id:     value.Id,
+		Id:     id,
 		Name:   req.Name,
 		NoTelp: req.NoTelp,
 	}

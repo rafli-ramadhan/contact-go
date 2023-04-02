@@ -22,6 +22,7 @@ func NewContactHttpHandler(contactrepository repository.ContactRepositorier) *co
 type ContactHttpHandlerInterface interface {
 	List(w http.ResponseWriter, r *http.Request)
 	Add(w http.ResponseWriter, r *http.Request)
+	Update(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 }
 
@@ -36,14 +37,6 @@ func (handler *contactHttpHandler) List(w http.ResponseWriter, r *http.Request) 
 }
 
 func (handler *contactHttpHandler) Add(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		log.Print(err)
-	}
-
-	log.Print("PASS 1")
-
-	/*
 	// using json
 	req := model.ContactRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -56,9 +49,14 @@ func (handler *contactHttpHandler) Add(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	*/
 
 	// using post form
+	/*
+	if err := r.ParseForm(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		log.Print(err)
+	}
+
 	name := r.PostForm.Get("name")
 	noTelp := r.PostForm.Get("no_telp")
 
@@ -70,7 +68,7 @@ func (handler *contactHttpHandler) Add(w http.ResponseWriter, r *http.Request) {
 	req := model.ContactRequest{
 		Name:   name,
 		NoTelp: noTelp,
-	}
+	}*/
 
 	result, err := handler.repo.Add(req)
 	if err != nil {
@@ -87,7 +85,52 @@ func (handler *contactHttpHandler) Add(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *contactHttpHandler) Update(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		log.Print(err)
+		w.WriteHeader(http.StatusBadRequest)
+	}
 
+	// using json
+	req := model.ContactRequest{}
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if req.Name == "" || req.NoTelp == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// using post form
+	/*
+	if err := r.ParseForm(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		log.Print(err)
+	}
+
+	name := r.PostForm.Get("name")
+	noTelp := r.PostForm.Get("no_telp")
+
+	if name == "" || noTelp == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	req = model.ContactRequest{
+		Name:   name,
+		NoTelp: noTelp,
+	}*/
+
+	err = handler.repo.Update(id, req)
+	if err != nil {
+		log.Print(err)
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (handler *contactHttpHandler) Delete(w http.ResponseWriter, r *http.Request) {
