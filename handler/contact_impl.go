@@ -19,7 +19,10 @@ func NewContactHandler(contactrepo repository.ContactRepositorier) *contactHandl
 
 func (handler *contactHandler) List() {
 	fmt.Printf("\nID\t\t| Nama\t\t | No Telp \n")
-	contacts := handler.repo.List()
+	contacts, err := handler.repo.List()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	for _, v := range contacts {
 		if len(v.Name) > 5 {
@@ -45,12 +48,14 @@ func (handler *contactHandler) Add() {
 		Name:   name,
 		NoTelp: no_telp,
 	}
-	contact, err := handler.repo.Add(contactRequest)
+	contact, err := handler.repo.Add([]model.ContactRequest{contactRequest})
 	if err != nil {
 		log.Print("\nThere is an error : ", err)
 	}
 	
-	fmt.Println("New data added success with id : ", contact.Id)
+	for _, v := range contact {
+		fmt.Println("New data added success with id : ", v.Id)
+	}
 }
 
 func (handler *contactHandler) Update() {

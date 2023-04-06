@@ -5,6 +5,7 @@ import (
 	"contact-go/handler"
 	"contact-go/helper"
 	"contact-go/repository"
+	"contact-go/usecase"
 	"fmt"
 	"net/http"
 	"os"
@@ -19,8 +20,13 @@ func main() {
 	switch config.Storage {
 	case "json":
 		contactRepo := repository.NewContactJsonRepository()
-		contactHandler := handler.NewContactHttpHandler(contactRepo)
+		contactHandler := handler.NewContactHttpJsonHandler(contactRepo)
 		HTTPServer(config, contactHandler)
+	case "db":
+		contactRepo := repository.NewContactHTTPRepository()
+		useCase := usecase.NewUseCase(contactRepo)
+		contacHandler := handler.NewContactHttpDbHandler(useCase)
+		HTTPDBServer(config, contacHandler)
 	default: // cmd
 		contactRepo := repository.NewContactRepository()
 		contactHandler := handler.NewContactHandler(contactRepo)
@@ -28,16 +34,42 @@ func main() {
 	}
 }
 
-func HTTPServer(config *config.Config, contactHandler handler.ContactHttpHandlerInterface) {
+func HTTPDBServer(config *config.Config, contactHandler handler.ContactHttpDbHandlerInterface) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/contact", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
+		if r.Method == http.MethodGet {
 			contactHandler.List(w, r)
-		} else if r.Method == "POST" {
+		} else if r.Method == http.MethodPost {
 			contactHandler.Add(w, r)
-		} else if r.Method == "PATCH" {
+		} else if r.Method == http.MethodPatch {
 			contactHandler.Update(w, r)
-		} else if r.Method == "DELETE" {
+		} else if r.Method == http.MethodDelete {
+			contactHandler.Delete(w, r)
+		}
+	})
+
+	server := http.Server{
+		Addr:    config.Port,
+		Handler: mux,
+	}
+
+	fmt.Println("Server run on ", server.Addr)
+	err := server.ListenAndServe()
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func HTTPServer(config *config.Config, contactHandler handler.ContactHttpJsonHandlerInterface) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/contact", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			contactHandler.List(w, r)
+		} else if r.Method == http.MethodPost {
+			contactHandler.Add(w, r)
+		} else if r.Method == http.MethodPatch {
+			contactHandler.Update(w, r)
+		} else if r.Method == http.MethodDelete {
 			contactHandler.Delete(w, r)
 		}
 	})

@@ -11,4 +11,10 @@ type Contact struct {
 	NoTelp string
 }
 
+type ContactResponse struct {
+	Status  int			`json:"status"`
+	Message string		`json:"message"`
+	Data	[]Contact	`json:"data"`
+}
+
 var ContactSlice []Contact = []Contact{}

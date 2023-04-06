@@ -9,25 +9,29 @@ import (
 	"strconv"
 )
 
-type contactHttpHandler struct {
+type contactHttpJsonHandler struct {
 	repo repository.ContactRepositorier
 }
 
-func NewContactHttpHandler(contactrepository repository.ContactRepositorier) *contactHttpHandler{
-	return &contactHttpHandler{
+func NewContactHttpJsonHandler(contactrepository repository.ContactRepositorier) *contactHttpJsonHandler{
+	return &contactHttpJsonHandler{
 		repo: contactrepository,
 	}
 }
 
-type ContactHttpHandlerInterface interface {
+type ContactHttpJsonHandlerInterface interface {
 	List(w http.ResponseWriter, r *http.Request)
 	Add(w http.ResponseWriter, r *http.Request)
 	Update(w http.ResponseWriter, r *http.Request)
 	Delete(w http.ResponseWriter, r *http.Request)
 }
 
-func (handler *contactHttpHandler) List(w http.ResponseWriter, r *http.Request) {
-	contact := handler.repo.List()
+func (handler *contactHttpJsonHandler) List(w http.ResponseWriter, r *http.Request) {
+	contact, err := handler.repo.List()
+	if err != nil {
+		log.Print(err)
+	}
+
 	jsonData, err := json.Marshal(contact)
 	if err != nil {
 		log.Print(err)
@@ -36,18 +40,20 @@ func (handler *contactHttpHandler) List(w http.ResponseWriter, r *http.Request) 
 	w.Write(jsonData)
 }
 
-func (handler *contactHttpHandler) Add(w http.ResponseWriter, r *http.Request) {
+func (handler *contactHttpJsonHandler) Add(w http.ResponseWriter, r *http.Request) {
 	// using json
-	req := model.ContactRequest{}
+	req := []model.ContactRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if req.Name == "" || req.NoTelp == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	for _, v := range req {
+		if v.Name == "" || v.NoTelp == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 	}
 
 	// using post form
@@ -84,7 +90,7 @@ func (handler *contactHttpHandler) Add(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
-func (handler *contactHttpHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (handler *contactHttpJsonHandler) Update(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -133,7 +139,7 @@ func (handler *contactHttpHandler) Update(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusOK)
 }
 
-func (handler *contactHttpHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (handler *contactHttpJsonHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {

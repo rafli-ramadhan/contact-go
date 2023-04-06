@@ -15,7 +15,7 @@ func NewContactJsonRepository() *contactjson {
 }
 
 func (repo *contactjson) getLastID() (lastID int, err error) {
-	list := repo.List()
+	list, err := repo.List()
 	if err != nil {
 		return
 	}
@@ -34,7 +34,7 @@ func (repo *contactjson) getLastID() (lastID int, err error) {
 }
 
 func (repo *contactjson) GetIndexById(id int) (index int, value model.Contact, err error) {
-	list := repo.List()
+	list, err := repo.List()
 	if err != nil {
 		return
 	}
@@ -60,11 +60,11 @@ func (repo *contactjson) updateJSON(list []model.Contact) (err error) {
 	return
 }
 
-func (repo *contactjson) List() (result []model.Contact) {
+func (repo *contactjson) List() (result []model.Contact, err error) {
 	// JSON -> struct
 	reader, err := os.Open("data/contact.txt")
 	if err != nil {
-		panic(err)
+		return
 	}
 	decoder := json.NewDecoder(reader)
 	decoder.Decode(&result)
@@ -72,9 +72,9 @@ func (repo *contactjson) List() (result []model.Contact) {
 	return
 }
 
-func (repo *contactjson) Add(req model.ContactRequest) (contact model.Contact, err error) {
+func (repo *contactjson) Add(req []model.ContactRequest) (contact []model.Contact, err error) {
 	// JSON to struct
-	list := repo.List()
+	list, err := repo.List()
 	if err != nil {
 		return
 	}
@@ -84,12 +84,15 @@ func (repo *contactjson) Add(req model.ContactRequest) (contact model.Contact, e
 		return
 	}
 
-	contact = model.Contact{
-		Id:     lastID + 1,
-		Name:   req.Name,
-		NoTelp: req.NoTelp,
+	for i, v := range req {
+		newContact := model.Contact{
+			Id:     lastID+1+i,
+			Name:  	v.Name,
+			NoTelp: v.NoTelp,
+		}
+		list = append(list, newContact)
+		contact = append(contact, newContact)
 	}
-	list = append(list, contact)
 
 	err = repo.updateJSON(list)
 	if err != nil {
@@ -104,7 +107,7 @@ func (repo *contactjson) Update(id int, req model.ContactRequest) (err error) {
 		return
 	}
 
-	list := repo.List()
+	list, err := repo.List()
 	if err != nil {
 		return
 	}
@@ -131,7 +134,7 @@ func (repo *contactjson) Update(id int, req model.ContactRequest) (err error) {
 }
 
 func (repo *contactjson) Delete(id int) (err error) {
-	list := repo.List()
+	list, err := repo.List()
 	if err != nil {
 		return
 	}

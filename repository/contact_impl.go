@@ -13,7 +13,7 @@ func NewContactRepository () *repository {
 }
 
 func (repo *repository) getLastID() (lastID int, err error) {
-	list := repo.List()
+	list, _ := repo.List()
 
 	if len(list) == 0 {
 		lastID = 0
@@ -39,22 +39,26 @@ func (repo *repository) GetIndexById(id int) (index int, value model.Contact, er
 	return -1, model.Contact{}, errors.New("id not found")
 }
 
-func (repo *repository) List() (result []model.Contact) {
-	return model.ContactSlice
+func (repo *repository) List() ([]model.Contact, error) {
+	return model.ContactSlice, nil
 }
 
-func (repo *repository) Add(req model.ContactRequest) (contact model.Contact, err error) {
+func (repo *repository) Add(req []model.ContactRequest) (contact []model.Contact, err error) {
 	lastID, err := repo.getLastID()
 	if err != nil {
 		return
 	}
 
-	contact = model.Contact{
-		Id:     lastID + 1,
-		Name:   req.Name,
-		NoTelp: req.NoTelp,
+	for i, v := range req {
+		newContact := model.Contact{
+			Id:     lastID+1+i,
+			Name:  	v.Name,
+			NoTelp: v.NoTelp,
+		}
+		model.ContactSlice = append(model.ContactSlice, newContact)
+		contact = append(contact, newContact)
+
 	}
-	model.ContactSlice = append(model.ContactSlice, contact)
 	return
 }
 
