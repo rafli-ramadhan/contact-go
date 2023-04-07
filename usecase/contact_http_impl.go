@@ -77,8 +77,8 @@ func (uc *usecase) Update(id int, req model.ContactRequest) (model.ContactRespon
 		}, err
 	}
 	return model.ContactResponse{
-		Status:  http.StatusCreated,
-		Message: "Created",
+		Status:  http.StatusOK,
+		Message: "Updated",
 		Data: 	 nil,
 	}, nil
 }

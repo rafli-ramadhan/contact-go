@@ -106,7 +106,7 @@ func (repo *contacthttp) Update(id int, req model.ContactRequest) (err error) {
 		return
 	}
 
-	query := `UPDATE contact SET name = ? and no_telp = ? WHERE id = ?`
+	query := `UPDATE contact SET name = ?, no_telp = ? WHERE id = ?`
 	stmt, err := db.PrepareContext(ctx, query)
 	if err != nil {
 		return
