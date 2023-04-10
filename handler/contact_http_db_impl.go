@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 type contactHttpDbHandler struct {
@@ -84,16 +83,9 @@ func (handler *contactHttpDbHandler) Add(w http.ResponseWriter, r *http.Request)
 
 func (handler *contactHttpDbHandler) Update(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		log.Print(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
 	// using json
 	req := model.ContactRequest{}
-	err = json.NewDecoder(r.Body).Decode(&req)
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		log.Print(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -120,7 +112,7 @@ func (handler *contactHttpDbHandler) Update(w http.ResponseWriter, r *http.Reque
 		NoTelp: noTelp,
 	}*/
 
-	response, err := handler.usecase.Update(id, req)
+	response, err := handler.usecase.Update(idStr, req)
 	if err != nil {
 		log.Print(err)
 	}
@@ -136,14 +128,8 @@ func (handler *contactHttpDbHandler) Update(w http.ResponseWriter, r *http.Reque
 
 func (handler *contactHttpDbHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		log.Print(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	response, err := handler.usecase.Delete(id)
+	log.Print(idStr)
+	response, err := handler.usecase.Delete(idStr)
 	if err != nil {
 		log.Print(err)
 	}
