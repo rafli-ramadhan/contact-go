@@ -72,7 +72,7 @@ func (repo *contactjson) List() (result []model.Contact, err error) {
 	return
 }
 
-func (repo *contactjson) Add(req []model.ContactRequest) (contact []model.Contact, err error) {
+func (repo *contactjson) Add(req []model.ContactRequest) (result []model.Contact, err error) {
 	// JSON to struct
 	list, err := repo.List()
 	if err != nil {
@@ -91,7 +91,7 @@ func (repo *contactjson) Add(req []model.ContactRequest) (contact []model.Contac
 			NoTelp: v.NoTelp,
 		}
 		list = append(list, newContact)
-		contact = append(contact, newContact)
+		result = append(result, newContact)
 	}
 
 	err = repo.updateJSON(list)

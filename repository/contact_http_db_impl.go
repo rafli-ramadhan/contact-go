@@ -1,28 +1,34 @@
 package repository
 
 import (
-	client "contact-go/db"
 	"contact-go/model"
 	"context"
+	"log"
+	
+	"database/sql"
 	"fmt"
 	"time"
 )
 
-type contacthttp struct{}
+type contacthttp struct{
+	db *sql.DB
+}
 
-func NewContactHTTPRepository() *contacthttp {
-	return &contacthttp{}
+func NewContactHTTPRepository(client *sql.DB) *contacthttp {
+	return &contacthttp{
+		db: client,
+	}
 }
 
 func (repo *contacthttp) List() (result []model.Contact, err error) {
-	db := client.GetDB("mysql").GetMysqlConnection()
-	defer db.Close()
+	defer repo.db.Close()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	trx, err := db.BeginTx(ctx, nil)
+	trx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
+		log.Print("1")
 		return
 	}
 
@@ -30,12 +36,13 @@ func (repo *contacthttp) List() (result []model.Contact, err error) {
 	query := `SELECT id, name, no_telp FROM contact`
 	stmt, err := trx.PrepareContext(ctx, query)
 	if err != nil {
+		log.Print("2")
 		return
 	}
-	// defer stmt.Close()
 
 	res, err := stmt.QueryContext(ctx)
 	if err != nil {
+		log.Print("3")
 		trx.Rollback()
 		return
 	}
@@ -43,29 +50,26 @@ func (repo *contacthttp) List() (result []model.Contact, err error) {
 	for res.Next() {
 		var temp model.Contact
 		res.Scan(&temp.Id, &temp.Name, &temp.NoTelp)
-
 		result = append(result, temp)
 	}
 
-	fmt.Println(result)
 	trx.Commit()
 	return
 }
 
-func (repo *contacthttp) Add(req []model.ContactRequest) (contact []model.Contact, err error) {
-	db := client.GetDB("mysql").GetMysqlConnection()
-	defer db.Close()
+func (repo *contacthttp) Add(req []model.ContactRequest) (result []model.Contact, err error) {
+	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
 
 	query := `INSERT INTO contact (name, no_telp) value (?,?)`
-	trx, err := db.BeginTx(ctx, nil)
+	trx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
 		return
 	}
 
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
@@ -82,7 +86,7 @@ func (repo *contacthttp) Add(req []model.ContactRequest) (contact []model.Contac
 			return []model.Contact{}, err
 		}
 
-		contact = append(contact, model.Contact{
+		result = append(result, model.Contact{
 			Id:   	int(lastID),
 			Name: 	v.Name,
 			NoTelp: v.NoTelp,
@@ -95,19 +99,18 @@ func (repo *contacthttp) Add(req []model.ContactRequest) (contact []model.Contac
 }
 
 func (repo *contacthttp) Update(id int, req model.ContactRequest) (err error) {
-	db := client.GetDB("mysql").GetMysqlConnection()
-	defer db.Close()
+	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	trx, err := db.BeginTx(ctx, nil)
+	trx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
 		return
 	}
 
 	query := `UPDATE contact SET name = ?, no_telp = ? WHERE id = ?`
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
@@ -117,7 +120,6 @@ func (repo *contacthttp) Update(id int, req model.ContactRequest) (err error) {
 		trx.Rollback()
 		return
 	}
-
 	fmt.Println(res.RowsAffected())
 
 	trx.Commit()
@@ -126,19 +128,18 @@ func (repo *contacthttp) Update(id int, req model.ContactRequest) (err error) {
 }
 
 func (repo *contacthttp) Delete(id int) (err error) {
-	db := client.GetDB("mysql").GetMysqlConnection()
-	defer db.Close()
+	defer repo.db.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	trx, err := db.BeginTx(ctx, nil)
+	trx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
 		return
 	}
 
 	query := `DELETE FROM contact WHERE id = ?`
-	stmt, err := db.PrepareContext(ctx, query)
+	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}

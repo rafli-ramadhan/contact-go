@@ -1,6 +1,7 @@
 package main
 
 import (
+	client "contact-go/db"
 	"contact-go/config"
 	"contact-go/handler"
 	"contact-go/helper"
@@ -22,8 +23,9 @@ func main() {
 		contactRepo := repository.NewContactJsonRepository()
 		contactHandler := handler.NewContactHttpJsonHandler(contactRepo)
 		HTTPServer(config, contactHandler)
-	case "db":
-		contactRepo := repository.NewContactHTTPRepository()
+	case "mysql":
+		db := client.GetDB(config.Storage).GetMysqlConnection()
+		contactRepo := repository.NewContactHTTPRepository(db)
 		useCase := usecase.NewUseCase(contactRepo)
 		contacHandler := handler.NewContactHttpDbHandler(useCase)
 		HTTPDBServer(config, contacHandler)
@@ -53,7 +55,7 @@ func HTTPDBServer(config *config.Config, contactHandler handler.ContactHttpDbHan
 		Handler: mux,
 	}
 
-	fmt.Println("Server run on ", server.Addr)
+	fmt.Println("Server run on", server.Addr)
 	err := server.ListenAndServe()
 	if err != nil {
 		panic(err.Error())

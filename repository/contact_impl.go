@@ -43,7 +43,7 @@ func (repo *repository) List() ([]model.Contact, error) {
 	return model.ContactSlice, nil
 }
 
-func (repo *repository) Add(req []model.ContactRequest) (contact []model.Contact, err error) {
+func (repo *repository) Add(req []model.ContactRequest) (result []model.Contact, err error) {
 	lastID, err := repo.getLastID()
 	if err != nil {
 		return
@@ -56,7 +56,7 @@ func (repo *repository) Add(req []model.ContactRequest) (contact []model.Contact
 			NoTelp: v.NoTelp,
 		}
 		model.ContactSlice = append(model.ContactSlice, newContact)
-		contact = append(contact, newContact)
+		result = append(result, newContact)
 
 	}
 	return

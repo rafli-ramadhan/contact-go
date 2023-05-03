@@ -24,14 +24,14 @@ func (uc *usecase) IsValidID(idStr string) (int, model.ContactResponse, error) {
 		return 0, model.ContactResponse{
 			Status:  http.StatusBadRequest,
 			Message: err.Error(),
-			Data: 	 nil,
+			Data:    nil,
 		}, err
 	}
 	if id <= 0 {
 		return 0, model.ContactResponse{
 			Status:  http.StatusBadRequest,
 			Message: "Id should not be more than 0",
-			Data: 	 nil,
+			Data:    nil,
 		}, errors.New("id should not be more than 0")
 	}
 	return id, model.ContactResponse{}, nil
@@ -42,7 +42,7 @@ func (uc *usecase) IsValidNameAndNoTelp(name string, noTelp string) (model.Conta
 		return model.ContactResponse{
 			Status:  http.StatusBadRequest,
 			Message: "Name should not be empty",
-			Data: 	 nil,
+			Data:    nil,
 		}, errors.New("name should not be empty")
 	}
 
@@ -50,7 +50,7 @@ func (uc *usecase) IsValidNameAndNoTelp(name string, noTelp string) (model.Conta
 		return model.ContactResponse{
 			Status:  http.StatusBadRequest,
 			Message: "No telp should not be empty",
-			Data: 	 nil,
+			Data:    nil,
 		}, errors.New("no telp should not be empty")
 	}
 	return model.ContactResponse{}, nil
@@ -62,13 +62,13 @@ func (uc *usecase) List() (model.ContactResponse, error) {
 		return model.ContactResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "Internal server error",
-			Data: 	 nil,
+			Data:    nil,
 		}, err
 	}
 	return model.ContactResponse{
 		Status:  http.StatusOK,
 		Message: "Ok",
-		Data: 	 res,
+		Data:    res,
 	}, nil
 }
 
@@ -85,13 +85,13 @@ func (uc *usecase) Add(req []model.ContactRequest) (model.ContactResponse, error
 		return model.ContactResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "Internal server error",
-			Data: 	 nil,
+			Data:    nil,
 		}, err
 	}
 	return model.ContactResponse{
 		Status:  http.StatusCreated,
 		Message: "Created",
-		Data: 	 res,
+		Data:    res,
 	}, nil
 }
 
@@ -111,13 +111,13 @@ func (uc *usecase) Update(idStr string, req model.ContactRequest) (model.Contact
 		return model.ContactResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "Internal server error",
-			Data: 	 nil,
+			Data:    nil,
 		}, err
 	}
 	return model.ContactResponse{
 		Status:  http.StatusOK,
 		Message: "Updated",
-		Data: 	 nil,
+		Data:    nil,
 	}, nil
 }
 
@@ -132,12 +132,12 @@ func (uc *usecase) Delete(idStr string) (model.ContactResponse, error) {
 		return model.ContactResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "Internal server error",
-			Data: 	 nil,
+			Data:    nil,
 		}, err
 	}
 	return model.ContactResponse{
 		Status:  http.StatusOK,
 		Message: "Deleted",
-		Data: 	 nil,
+		Data:    nil,
 	}, nil
 }
