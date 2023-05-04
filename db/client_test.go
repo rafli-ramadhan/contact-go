@@ -10,4 +10,9 @@ func TestClient(t *testing.T) {
 		config := GetDB("mysql").GetMysqlConnection()
 		require.NotEmpty(t, config)
 	})
+
+	t.Run("test config", func(t *testing.T) {
+		config := GetDB("mysql").GetMysqlConnection()
+		require.NotEmpty(t, config)
+	})
 }

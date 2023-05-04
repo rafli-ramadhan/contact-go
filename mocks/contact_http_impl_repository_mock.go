@@ -28,9 +28,11 @@ func (m *RepoMock) Add(req []model.ContactRequest) (result []model.Contact, err 
 }
 
 func (m *RepoMock) Update(id int, req model.ContactRequest) (err error) {
+	// sebagai indikator parameter diperoleh
 	ret := m.Called(id, req)	
 	var res1 error
 	if ret.Get(0) != nil {
+		// type assertion -> mengubah interface kosong menjadi suatu tipe data yang diperlukan
 		res1 = ret.Get(0).(error)
 	}
 	return res1
@@ -40,6 +42,7 @@ func (m *RepoMock) Delete(id int) (err error) {
 	ret := m.Called(id)
 	var res1 error
 	if ret.Get(0) != nil {
+		// type assertion -> mengubah interface kosong menjadi suatu tipe data yang diperlukan
 		res1 = ret.Get(0).(error)
 	}
 	return res1

@@ -4,6 +4,7 @@ import (
 	"contact-go/model"
 	"database/sql"
 	"fmt"
+	"log"
 	"regexp"
 	"testing"
 
@@ -32,6 +33,18 @@ func (client *Mysqlclient) SetupTest() {
 	client.db = db
 	client.mock = mock
 	client.repo = NewContactHTTPRepository(db)
+}
+
+func (client *Mysqlclient) TearDownTest() {
+	log.Println("After Each Test Executed")
+}
+
+func (client *Mysqlclient) SetupSuite() {
+	log.Println("Setup Before All Test Executed")
+}
+
+func (client *Mysqlclient) TearDownSuite() {
+	log.Println("Tear All Test Executed")
 }
 
 func (client *Mysqlclient) TestGetListContact() {
