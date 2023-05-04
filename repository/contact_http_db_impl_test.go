@@ -99,6 +99,6 @@ func (client *Mysqlclient) TestDeleteContact() {
 	require.NoError(client.T(), err)
 }
 
-func TestInitMySQL(t *testing.T) {
+func TestRepoHTTP(t *testing.T) {
 	suite.Run(t, new(Mysqlclient))
 }
