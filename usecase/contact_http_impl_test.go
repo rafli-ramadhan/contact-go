@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestContactHTTPUsecase(t *testing.T) {
+func TestUseCaseHTTP(t *testing.T) {
 	t.Run("is valid id success", func(t *testing.T) {
 		repoMock := mocks.NewRepoMock()
 		uc := NewUseCase(repoMock)

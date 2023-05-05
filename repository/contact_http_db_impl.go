@@ -24,24 +24,16 @@ func (repo *contacthttp) List() (result []model.Contact, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	trx, err := repo.db.BeginTx(ctx, nil)
-	if err != nil {
-		log.Print("1")
-		return
-	}
-
 	// prepare statement
 	query := `SELECT id, name, no_telp FROM contact`
-	stmt, err := trx.PrepareContext(ctx, query)
+	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
-		log.Print("2")
+		log.Print("prepare list")
 		return
 	}
 
 	res, err := stmt.QueryContext(ctx)
 	if err != nil {
-		log.Print("3")
-		trx.Rollback()
 		return
 	}
 
@@ -51,7 +43,6 @@ func (repo *contacthttp) List() (result []model.Contact, err error) {
 		result = append(result, temp)
 	}
 
-	trx.Commit()
 	return
 }
 
@@ -69,6 +60,7 @@ func (repo *contacthttp) Add(req []model.ContactRequest) (result []model.Contact
 
 	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
+		log.Print("prepare add")
 		return
 	}
 
@@ -110,6 +102,7 @@ func (repo *contacthttp) Update(id int, req model.ContactRequest) (err error) {
 	query := `UPDATE contact SET name = ?, no_telp = ? WHERE id = ?`
 	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
+		log.Print("prepare update")
 		return
 	}
 
@@ -138,16 +131,13 @@ func (repo *contacthttp) Delete(id int) (err error) {
 	query := `DELETE FROM contact WHERE id = ?`
 	stmt, err := repo.db.PrepareContext(ctx, query)
 	if err != nil {
+		log.Print("prepare delete")
 		return
 	}
 
-	res, err := stmt.ExecContext(ctx, id)
+	_, err = stmt.ExecContext(ctx, id)
 	if err != nil {
 		trx.Rollback()
-	}
-
-	_, err = res.RowsAffected()
-	if err != nil {
 		return
 	}
 

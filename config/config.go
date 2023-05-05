@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/spf13/viper"
 )
@@ -12,13 +13,16 @@ type Config struct {
 	Storage string `mapStructure:"storage"`
 }
 
-func LoadConfig() (*Config, error) {
-	viper.SetConfigFile(".env")
+func LoadConfig(name string, path string) (*Config, error) {
+	viper.AddConfigPath(path)
+	viper.SetConfigFile(name)
 
 	// search defined path of file
 	err := viper.ReadInConfig()
 	if err != nil {
+		log.Print(err)
 		_, ok := err.(viper.ConfigFileNotFoundError)
+		log.Print(ok)
 		if ok {
 			return nil, errors.New(".env tidak ditemukan")
 		}

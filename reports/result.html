@@ -1,0 +1,1495 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>config: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">contact-go/config/config.go (60.0%)</option>
+				
+				<option value="file1">contact-go/config/db.go (100.0%)</option>
+				
+				<option value="file2">contact-go/db/client.go (91.7%)</option>
+				
+				<option value="file3">contact-go/handler/contact_http_db_impl.go (91.5%)</option>
+				
+				<option value="file4">contact-go/handler/contact_http_json_impl.go (0.0%)</option>
+				
+				<option value="file5">contact-go/handler/contact_impl.go (0.0%)</option>
+				
+				<option value="file6">contact-go/helper/clearscreen.go (0.0%)</option>
+				
+				<option value="file7">contact-go/main.go (0.0%)</option>
+				
+				<option value="file8">contact-go/mocks/contact_http_impl_repository_mock.go (100.0%)</option>
+				
+				<option value="file9">contact-go/mocks/contact_http_impl_usecase_mock.go (100.0%)</option>
+				
+				<option value="file10">contact-go/mocks/contact_json_impl_repository_mock.go (0.0%)</option>
+				
+				<option value="file11">contact-go/repository/contact_http_db_impl.go (100.0%)</option>
+				
+				<option value="file12">contact-go/repository/contact_http_json_impl.go (0.0%)</option>
+				
+				<option value="file13">contact-go/repository/contact_impl.go (76.3%)</option>
+				
+				<option value="file14">contact-go/usecase/contact_http_impl.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package config
+
+import (
+        "errors"
+        "fmt"
+        "log"
+
+        "github.com/spf13/viper"
+)
+
+type Config struct {
+        Port    string `mapStructure:"port"`
+        Storage string `mapStructure:"storage"`
+}
+
+func LoadConfig(name string, path string) (*Config, error) <span class="cov8" title="1">{
+        viper.AddConfigPath(path)
+        viper.SetConfigFile(name)
+
+        // search defined path of file
+        err := viper.ReadInConfig()
+        if err != nil </span><span class="cov8" title="1">{
+                log.Print(err)
+                _, ok := err.(viper.ConfigFileNotFoundError)
+                log.Print(ok)
+                if ok </span><span class="cov0" title="0">{
+                        return nil, errors.New(".env tidak ditemukan")
+                }</span>
+                <span class="cov8" title="1">return nil, fmt.Errorf("fatal error config file %s", err)</span>
+        }
+
+        // unmarshal parameter file .env to struct
+        <span class="cov0" title="0">config := Config{}
+        err = viper.Unmarshal(&amp;config)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("fatal error decode : %s", err)
+        }</span>
+
+        <span class="cov0" title="0">return &amp;config, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package config
+
+import (
+        "fmt"
+        "os"
+)
+
+type mysql struct {
+        Username string
+        Password string
+        Host         string
+        Port         string
+        Database string
+}
+
+type postgresql struct {
+        Username string
+        Password string
+        Host         string
+        Port         string
+        Database string
+}
+
+type configure struct {
+        Mysqlconf                mysql
+        Postgresqlconf        postgresql
+}
+
+func GetConf() configure <span class="cov8" title="1">{
+        os.LookupEnv("MySQLUsername")
+        fmt.Println(os.Getenv("MySQLUsername"))
+
+        return configure {
+                Mysqlconf: mysql{
+                        Username: "root",
+                        Password: "@Ugm428660",
+                        Host:          "localhost",
+                        Port:          "3306",
+                        Database: "bootcamp",
+                },
+                Postgresqlconf: postgresql{
+                        Username: os.Getenv("PostgreSQLUsername"),
+                        Password: os.Getenv("PostgreSQLPassword"),
+                        Host:          os.Getenv("PostgreSQLHost"),
+                        Port:          os.Getenv("PostgreSQLPort"),
+                        Database: os.Getenv("PostgreSQLDatabase"),
+                },
+        }
+}</pre>
+		
+		<pre class="file" id="file2" style="display: none">package client
+
+import (
+        "fmt"
+        "log"
+        "time"
+
+        "contact-go/config"
+        "database/sql"
+        _ "github.com/go-sql-driver/mysql"
+)
+
+const (
+        mysql           = "mysql"
+        postgresql = "postgres"
+)
+
+type dbOption struct {
+        Database string
+}
+
+func GetDB(dbSelected string) dbOption <span class="cov8" title="1">{
+        return dbOption{
+                Database: dbSelected,
+        }
+}</span>
+
+var (
+        conDB                           = config.GetConf()
+        connString string = ""
+)
+
+func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB) <span class="cov8" title="1">{
+        if dbOpt.Database == mysql </span><span class="cov8" title="1">{
+                // "username:password@tcp(host:port)/database_name"
+                connString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%v", conDB.Mysqlconf.Username, conDB.Mysqlconf.Password, conDB.Mysqlconf.Host, conDB.Mysqlconf.Port, conDB.Mysqlconf.Database)
+        }</span>
+
+        <span class="cov8" title="1">db, err := sql.Open(mysql, connString)
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+
+        <span class="cov8" title="1">log.Printf("Running mysql on %s on port %s\n", conDB.Mysqlconf.Host, conDB.Mysqlconf.Port)
+        
+        db.SetMaxIdleConns(2)
+        db.SetMaxOpenConns(5)
+        db.SetConnMaxIdleTime(10*time.Minute)
+        db.SetConnMaxLifetime(60*time.Minute)
+
+        return</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package handler
+
+import (
+        "contact-go/model"
+        "contact-go/usecase"
+        "encoding/json"
+        "log"
+        "net/http"
+)
+
+type contactHttpDbHandler struct {
+        usecase usecase.UseCaseInterface
+}
+
+func NewContactHttpDbHandler(usecase usecase.UseCaseInterface) *contactHttpDbHandler<span class="cov8" title="1">{
+        return &amp;contactHttpDbHandler{
+                usecase: usecase,
+        }
+}</span>
+
+type ContactHttpDbHandlerInterface interface {
+        List(w http.ResponseWriter, r *http.Request)
+        Add(w http.ResponseWriter, r *http.Request)
+        Update(w http.ResponseWriter, r *http.Request)
+        Delete(w http.ResponseWriter, r *http.Request)
+}
+
+func (handler *contactHttpDbHandler) List(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        response, err := handler.usecase.List()
+        if err != nil </span><span class="cov8" title="1">{
+                log.Print(err)
+        }</span>
+
+        <span class="cov8" title="1">jsonData, err := json.Marshal(response)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print(err)
+        }</span>
+        <span class="cov8" title="1">w.WriteHeader(response.Status)
+        w.Write(jsonData)</span>
+}
+
+func (handler *contactHttpDbHandler) Add(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        // using json
+        req := []model.ContactRequest{}
+        err := json.NewDecoder(r.Body).Decode(&amp;req)
+        if err != nil </span><span class="cov8" title="1">{
+                http.Error(w, err.Error(), http.StatusBadRequest)
+                return
+        }</span>
+
+        // using post form
+        /*
+        if err := r.ParseForm(); err != nil {
+                w.WriteHeader(http.StatusBadRequest)
+                log.Print(err)
+        }
+
+        name := r.PostForm.Get("name")
+        noTelp := r.PostForm.Get("no_telp")
+
+        if name == "" || noTelp == "" {
+                w.WriteHeader(http.StatusBadRequest)
+                return
+        }
+
+        req := model.ContactRequest{
+                Name:   name,
+                NoTelp: noTelp,
+        }*/
+
+        <span class="cov8" title="1">response, err := handler.usecase.Add(req)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Print(err)
+        }</span>
+
+        <span class="cov8" title="1">jsonData, err := json.Marshal(response)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print(err)
+        }</span>
+        <span class="cov8" title="1">w.WriteHeader(response.Status)
+        w.Write(jsonData)</span>
+}
+
+func (handler *contactHttpDbHandler) Update(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        idStr := r.URL.Query().Get("id")
+        // using json
+        req := model.ContactRequest{}
+        err := json.NewDecoder(r.Body).Decode(&amp;req)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Print(err)
+                w.WriteHeader(http.StatusBadRequest)
+                return
+        }</span>
+
+        // using post form
+        /*
+        if err := r.ParseForm(); err != nil {
+                w.WriteHeader(http.StatusBadRequest)
+                log.Print(err)
+        }
+
+        name := r.PostForm.Get("name")
+        noTelp := r.PostForm.Get("no_telp")
+
+        if name == "" || noTelp == "" {
+                w.WriteHeader(http.StatusBadRequest)
+                return
+        }
+
+        req = model.ContactRequest{
+                Name:   name,
+                NoTelp: noTelp,
+        }*/
+
+        <span class="cov8" title="1">response, err := handler.usecase.Update(idStr, req)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Print(err)
+        }</span>
+
+        <span class="cov8" title="1">jsonData, err := json.Marshal(response)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print(err)
+        }</span>
+
+        <span class="cov8" title="1">w.WriteHeader(response.Status)
+        w.Write(jsonData)</span>
+}
+
+func (handler *contactHttpDbHandler) Delete(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        idStr := r.URL.Query().Get("id")
+        log.Print(idStr)
+        response, err := handler.usecase.Delete(idStr)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Print(err)
+        }</span>
+
+        <span class="cov8" title="1">jsonData, err := json.Marshal(response)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print(err)
+        }</span>
+
+        <span class="cov8" title="1">w.WriteHeader(response.Status)
+        w.Write(jsonData)</span>
+}</pre>
+		
+		<pre class="file" id="file4" style="display: none">package handler
+
+import (
+        "contact-go/model"
+        "contact-go/repository"
+        "encoding/json"
+        "log"
+        "net/http"
+        "strconv"
+)
+
+type contactHttpJsonHandler struct {
+        repo repository.ContactRepositorier
+}
+
+func NewContactHttpJsonHandler(contactrepository repository.ContactRepositorier) *contactHttpJsonHandler<span class="cov0" title="0">{
+        return &amp;contactHttpJsonHandler{
+                repo: contactrepository,
+        }
+}</span>
+
+type ContactHttpJsonHandlerInterface interface {
+        List(w http.ResponseWriter, r *http.Request)
+        Add(w http.ResponseWriter, r *http.Request)
+        Update(w http.ResponseWriter, r *http.Request)
+        Delete(w http.ResponseWriter, r *http.Request)
+}
+
+func (handler *contactHttpJsonHandler) List(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        contact, err := handler.repo.List()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print(err)
+        }</span>
+
+        <span class="cov0" title="0">jsonData, err := json.Marshal(contact)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print(err)
+        }</span>
+        <span class="cov0" title="0">w.WriteHeader(http.StatusOK)
+        w.Write(jsonData)</span>
+}
+
+func (handler *contactHttpJsonHandler) Add(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        // using json
+        req := []model.ContactRequest{}
+        err := json.NewDecoder(r.Body).Decode(&amp;req)
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, err.Error(), http.StatusBadRequest)
+                return
+        }</span>
+
+        <span class="cov0" title="0">for _, v := range req </span><span class="cov0" title="0">{
+                if v.Name == "" || v.NoTelp == "" </span><span class="cov0" title="0">{
+                        w.WriteHeader(http.StatusBadRequest)
+                        return
+                }</span>
+        }
+
+        // using post form
+        /*
+        if err := r.ParseForm(); err != nil {
+                w.WriteHeader(http.StatusBadRequest)
+                log.Print(err)
+        }
+
+        name := r.PostForm.Get("name")
+        noTelp := r.PostForm.Get("no_telp")
+
+        if name == "" || noTelp == "" {
+                w.WriteHeader(http.StatusBadRequest)
+                return
+        }
+
+        req := model.ContactRequest{
+                Name:   name,
+                NoTelp: noTelp,
+        }*/
+
+        <span class="cov0" title="0">result, err := handler.repo.Add(req)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print(err)
+        }</span>
+
+        <span class="cov0" title="0">jsonData, err := json.Marshal(result)
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+
+        <span class="cov0" title="0">w.WriteHeader(http.StatusOK)
+        w.Write(jsonData)</span>
+}
+
+func (handler *contactHttpJsonHandler) Update(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        idStr := r.URL.Query().Get("id")
+        id, err := strconv.Atoi(idStr)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print(err)
+                w.WriteHeader(http.StatusBadRequest)
+        }</span>
+
+        // using json
+        <span class="cov0" title="0">req := model.ContactRequest{}
+        err = json.NewDecoder(r.Body).Decode(&amp;req)
+        if err != nil </span><span class="cov0" title="0">{
+                http.Error(w, err.Error(), http.StatusBadRequest)
+                return
+        }</span>
+
+        <span class="cov0" title="0">if req.Name == "" || req.NoTelp == "" </span><span class="cov0" title="0">{
+                w.WriteHeader(http.StatusBadRequest)
+                return
+        }</span>
+
+        // using post form
+        /*
+        if err := r.ParseForm(); err != nil {
+                w.WriteHeader(http.StatusBadRequest)
+                log.Print(err)
+        }
+
+        name := r.PostForm.Get("name")
+        noTelp := r.PostForm.Get("no_telp")
+
+        if name == "" || noTelp == "" {
+                w.WriteHeader(http.StatusBadRequest)
+                return
+        }
+
+        req = model.ContactRequest{
+                Name:   name,
+                NoTelp: noTelp,
+        }*/
+
+        <span class="cov0" title="0">err = handler.repo.Update(id, req)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print(err)
+        }</span>
+
+        <span class="cov0" title="0">w.WriteHeader(http.StatusOK)</span>
+}
+
+func (handler *contactHttpJsonHandler) Delete(w http.ResponseWriter, r *http.Request) <span class="cov0" title="0">{
+        idStr := r.URL.Query().Get("id")
+        id, err := strconv.Atoi(idStr)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print(err)
+                w.WriteHeader(http.StatusBadRequest)
+        }</span>
+
+        <span class="cov0" title="0">err = handler.repo.Delete(id)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print(err)
+                w.WriteHeader(http.StatusInternalServerError)
+        }</span>
+}</pre>
+		
+		<pre class="file" id="file5" style="display: none">package handler
+
+import (
+        "contact-go/model"
+        "contact-go/repository"
+        "fmt"
+        "log"
+)
+
+type contactHandler struct {
+        repo repository.ContactRepositorier
+}
+
+func NewContactHandler(contactrepo repository.ContactRepositorier) *contactHandler <span class="cov0" title="0">{
+        return &amp;contactHandler{
+                repo: contactrepo,
+        }
+}</span>
+
+func (handler *contactHandler) List() <span class="cov0" title="0">{
+        fmt.Printf("\nID\t\t| Nama\t\t | No Telp \n")
+        contacts, err := handler.repo.List()
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err.Error())
+        }</span>
+
+        <span class="cov0" title="0">for _, v := range contacts </span><span class="cov0" title="0">{
+                if len(v.Name) &gt; 5 </span><span class="cov0" title="0">{
+                        fmt.Printf("%d \t\t| %s\t | %s\n", v.Id, v.Name, v.NoTelp)
+                }</span> else<span class="cov0" title="0"> {
+                        fmt.Printf("%d \t\t| %s\t\t | %s\n", v.Id, v.Name, v.NoTelp)
+                }</span>
+        }
+}
+
+func (handler *contactHandler) Add() <span class="cov0" title="0">{
+        fmt.Println("Add new contact")
+        
+        fmt.Print("Name = ")
+        var name string
+        fmt.Scanln(&amp;name)
+        
+        fmt.Print("No telp = ")
+        var no_telp string
+        fmt.Scanln(&amp;no_telp)
+
+        contactRequest := model.ContactRequest{
+                Name:   name,
+                NoTelp: no_telp,
+        }
+        contact, err := handler.repo.Add([]model.ContactRequest{contactRequest})
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print("\nThere is an error : ", err)
+        }</span>
+        
+        <span class="cov0" title="0">for _, v := range contact </span><span class="cov0" title="0">{
+                fmt.Println("New data added success with id : ", v.Id)
+        }</span>
+}
+
+func (handler *contactHandler) Update() <span class="cov0" title="0">{
+        fmt.Println("Update existing contact")
+        fmt.Print("Input id : ")
+
+        var id int
+        fmt.Scanln(&amp;id)
+
+        fmt.Print("Name = ")
+        var name string
+        fmt.Scanln(&amp;name)
+
+        fmt.Print("No telp = ")
+        var no_telp string
+        fmt.Scanln(&amp;no_telp)
+
+        req := model.ContactRequest{
+                Name:   name,
+                NoTelp: no_telp,
+        }
+
+        err := handler.repo.Update(id, req)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print("\nThere is an error : ", err)
+        }</span>
+        
+        <span class="cov0" title="0">fmt.Printf("Contact with id %d updated\n", id)</span>
+}
+
+func (handler *contactHandler) Delete() <span class="cov0" title="0">{
+        fmt.Println("Delete existing contact")
+        fmt.Print("Input id : ")
+        var id int
+        fmt.Scanln(&amp;id)
+
+        err := handler.repo.Delete(id)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Print("\nThere is an error : ", err)
+        }</span>
+
+        <span class="cov0" title="0">fmt.Printf("Contact with id %d deleted\n", id)</span>
+}</pre>
+		
+		<pre class="file" id="file6" style="display: none">package helper
+
+import (
+        "fmt"
+        "os"
+        "os/exec"
+)
+
+func ClearScreeen() <span class="cov0" title="0">{
+        var enter string
+        fmt.Println("\nPilih menu lain tekan enter")
+        fmt.Scanln(&amp;enter)
+
+        clearScreen := exec.Command("cmd", "/c", "cls")
+        clearScreen.Stdout = os.Stdout
+        clearScreen.Run()
+}</pre>
+		
+		<pre class="file" id="file7" style="display: none">package main
+
+import (
+        client "contact-go/db"
+        "contact-go/config"
+        "contact-go/handler"
+        "contact-go/helper"
+        "contact-go/repository"
+        "contact-go/usecase"
+        "fmt"
+        "net/http"
+        "os"
+)
+
+func main() <span class="cov0" title="0">{
+        config, err := config.LoadConfig(".env", "./../config")
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+
+        <span class="cov0" title="0">switch config.Storage </span>{
+        case "json":<span class="cov0" title="0">
+                contactRepo := repository.NewContactJsonRepository()
+                contactHandler := handler.NewContactHttpJsonHandler(contactRepo)
+                HTTPJsonServer(config, contactHandler)</span>
+        case "mysql":<span class="cov0" title="0">
+                db := client.GetDB(config.Storage).GetMysqlConnection()
+                contactRepo := repository.NewContactHTTPRepository(db)
+                useCase := usecase.NewUseCase(contactRepo)
+                contacHandler := handler.NewContactHttpDbHandler(useCase)
+                HTTPDBServer(config, contacHandler)</span>
+        default:<span class="cov0" title="0"> // cmd
+                contactRepo := repository.NewContactRepository()
+                contactHandler := handler.NewContactHandler(contactRepo)
+                Menu(contactHandler)</span>
+        }
+}
+
+func HTTPDBServer(config *config.Config, contactHandler handler.ContactHttpDbHandlerInterface) <span class="cov0" title="0">{
+        mux := http.NewServeMux()
+        mux.HandleFunc("/contact", func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                if r.Method == http.MethodGet </span><span class="cov0" title="0">{
+                        contactHandler.List(w, r)
+                }</span> else<span class="cov0" title="0"> if r.Method == http.MethodPost </span><span class="cov0" title="0">{
+                        contactHandler.Add(w, r)
+                }</span> else<span class="cov0" title="0"> if r.Method == http.MethodPatch </span><span class="cov0" title="0">{
+                        contactHandler.Update(w, r)
+                }</span> else<span class="cov0" title="0"> if r.Method == http.MethodDelete </span><span class="cov0" title="0">{
+                        contactHandler.Delete(w, r)
+                }</span>
+        })
+
+        <span class="cov0" title="0">server := http.Server{
+                Addr:    config.Port,
+                Handler: mux,
+        }
+
+        fmt.Println("Server run on", server.Addr)
+        err := server.ListenAndServe()
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err.Error())</span>
+        }
+}
+
+func HTTPJsonServer(config *config.Config, contactHandler handler.ContactHttpJsonHandlerInterface) <span class="cov0" title="0">{
+        mux := http.NewServeMux()
+        mux.HandleFunc("/contact", func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                if r.Method == http.MethodGet </span><span class="cov0" title="0">{
+                        contactHandler.List(w, r)
+                }</span> else<span class="cov0" title="0"> if r.Method == http.MethodPost </span><span class="cov0" title="0">{
+                        contactHandler.Add(w, r)
+                }</span> else<span class="cov0" title="0"> if r.Method == http.MethodPatch </span><span class="cov0" title="0">{
+                        contactHandler.Update(w, r)
+                }</span> else<span class="cov0" title="0"> if r.Method == http.MethodDelete </span><span class="cov0" title="0">{
+                        contactHandler.Delete(w, r)
+                }</span>
+        })
+
+        <span class="cov0" title="0">server := http.Server{
+                Addr:    config.Port,
+                Handler: mux,
+        }
+
+        fmt.Println("Server run on ", server.Addr)
+        err := server.ListenAndServe()
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err.Error())</span>
+        }
+}
+
+// Menu function only for CLI used
+func Menu(contactHandler handler.ContactHandlerInterface) <span class="cov0" title="0">{
+        fmt.Println("\nSelect menu")
+        fmt.Println("1. List contact")
+        fmt.Println("2. Add contact")
+        fmt.Println("3. Update contach")
+        fmt.Println("4. Delete contach")
+        fmt.Println("5. Exit")
+
+        var choose int
+        fmt.Print("Select menu : \n")
+        fmt.Scanln(&amp;choose)
+
+        switch choose </span>{
+        case 1:<span class="cov0" title="0">
+                contactHandler.List()
+                helper.ClearScreeen()
+                Menu(contactHandler)</span>
+        case 2:<span class="cov0" title="0">
+                contactHandler.Add()
+                contactHandler.List()
+                helper.ClearScreeen()
+                Menu(contactHandler)</span>
+        case 3:<span class="cov0" title="0">
+                contactHandler.List()
+                contactHandler.Update()
+                fmt.Printf("------------Updated Datas------------")
+                contactHandler.List()
+                helper.ClearScreeen()
+                Menu(contactHandler)</span>
+        case 4:<span class="cov0" title="0">
+                contactHandler.List()
+                contactHandler.Delete()
+                fmt.Printf("------------Updated Datas------------")
+                contactHandler.List()
+                helper.ClearScreeen()
+                Menu(contactHandler)</span>
+        case 5:<span class="cov0" title="0">
+                os.Exit(1)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package mocks
+
+import (
+        "contact-go/model"
+        "github.com/stretchr/testify/mock"
+)
+
+type RepoMock struct {
+        mock.Mock
+}
+
+func NewRepoMock() *RepoMock <span class="cov8" title="1">{
+        return &amp;RepoMock{}
+}</span>
+
+func (m *RepoMock) List() (result []model.Contact, err error) <span class="cov8" title="1">{
+        ret := m.Called()
+        result = ret.Get(0).([]model.Contact)
+        err = ret.Error(1)
+        return result, err
+}</span>
+
+func (m *RepoMock) Add(req []model.ContactRequest) (result []model.Contact, err error) <span class="cov8" title="1">{
+        ret := m.Called(req)
+        result = ret.Get(0).([]model.Contact)
+        err = ret.Error(1)
+        return result, err
+}</span>
+
+func (m *RepoMock) Update(id int, req model.ContactRequest) (err error) <span class="cov8" title="1">{
+        // sebagai indikator parameter diperoleh
+        ret := m.Called(id, req)        
+        var res1 error
+        if ret.Get(0) != nil </span><span class="cov8" title="1">{
+                // type assertion -&gt; mengubah interface kosong menjadi suatu tipe data yang diperlukan
+                res1 = ret.Get(0).(error)
+        }</span>
+        <span class="cov8" title="1">return res1</span>
+}
+
+func (m *RepoMock) Delete(id int) (err error) <span class="cov8" title="1">{
+        ret := m.Called(id)
+        var res1 error
+        if ret.Get(0) != nil </span><span class="cov8" title="1">{
+                // type assertion -&gt; mengubah interface kosong menjadi suatu tipe data yang diperlukan
+                res1 = ret.Get(0).(error)
+        }</span>
+        <span class="cov8" title="1">return res1</span>
+}</pre>
+		
+		<pre class="file" id="file9" style="display: none">package mocks
+
+import (
+        "contact-go/model"
+        "github.com/stretchr/testify/mock"
+)
+
+type UsecaseMock struct {
+        mock.Mock
+}
+
+func NewUseCaseMock() *UsecaseMock <span class="cov8" title="1">{
+        return &amp;UsecaseMock{}
+}</span>
+
+func (m *UsecaseMock) List() (model.ContactResponse, error) <span class="cov8" title="1">{
+        ret := m.Called()
+        result := ret.Get(0).(model.ContactResponse)
+        err := ret.Error(1)
+        return result, err
+}</span>
+
+func (m *UsecaseMock) Add(req []model.ContactRequest) (model.ContactResponse, error) <span class="cov8" title="1">{
+        ret := m.Called(req)
+        result := ret.Get(0).(model.ContactResponse)
+        err := ret.Error(1)
+        return result, err
+}</span>
+
+func (m *UsecaseMock) Update(idStr string, req model.ContactRequest) (model.ContactResponse, error) <span class="cov8" title="1">{
+        ret := m.Called(idStr, req)
+        result := ret.Get(0).(model.ContactResponse)
+        err := ret.Error(1)
+        return result, err
+}</span>
+
+func (m *UsecaseMock) Delete(idStr string) (model.ContactResponse, error) <span class="cov8" title="1">{
+        ret := m.Called(idStr)
+        result := ret.Get(0).(model.ContactResponse)
+        err := ret.Error(1)
+        return result, err
+}</pre>
+		
+		<pre class="file" id="file10" style="display: none">package mocks
+
+import (
+        "contact-go/model"
+        "github.com/stretchr/testify/mock"
+)
+
+type JsonRepoMock struct {
+        mock.Mock
+}
+
+func NewJsonRepoMock() *JsonRepoMock <span class="cov0" title="0">{
+        return &amp;JsonRepoMock{}
+}</span>
+
+func (m *JsonRepoMock) UpdateJSON(list []model.Contact) (err error) <span class="cov0" title="0">{
+        return nil
+}</span>
+
+func (m *JsonRepoMock) List() (result []model.Contact, err error) <span class="cov0" title="0">{
+        ret := m.Called()
+        result = ret.Get(0).([]model.Contact)
+        return result, nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package repository
+
+import (
+        "contact-go/model"
+        "context"
+        "database/sql"
+        "log"
+        "time"
+)
+
+type contacthttp struct{
+        db *sql.DB
+}
+
+func NewContactHTTPRepository(client *sql.DB) *contacthttp <span class="cov8" title="1">{
+        return &amp;contacthttp{
+                db: client,
+        }
+}</span>
+
+func (repo *contacthttp) List() (result []model.Contact, err error) <span class="cov8" title="1">{
+        defer repo.db.Close()
+
+        ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+        defer cancel()
+
+        // prepare statement
+        query := `SELECT id, name, no_telp FROM contact`
+        stmt, err := repo.db.PrepareContext(ctx, query)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Print("prepare list")
+                return
+        }</span>
+
+        <span class="cov8" title="1">res, err := stmt.QueryContext(ctx)
+        if err != nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">for res.Next() </span><span class="cov8" title="1">{
+                var temp model.Contact
+                res.Scan(&amp;temp.Id, &amp;temp.Name, &amp;temp.NoTelp)
+                result = append(result, temp)
+        }</span>
+
+        <span class="cov8" title="1">return</span>
+}
+
+func (repo *contacthttp) Add(req []model.ContactRequest) (result []model.Contact, err error) <span class="cov8" title="1">{
+        defer repo.db.Close()
+
+        ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+        defer cancel()
+
+        query := `INSERT INTO contact (name, no_telp) value (?,?)`
+        trx, err := repo.db.BeginTx(ctx, nil)
+        if err != nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">stmt, err := repo.db.PrepareContext(ctx, query)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Print("prepare add")
+                return
+        }</span>
+
+        <span class="cov8" title="1">for _, v := range req </span><span class="cov8" title="1">{
+                res, err := stmt.ExecContext(ctx, v.Name, v.NoTelp)
+                if err != nil </span><span class="cov8" title="1">{
+                        trx.Rollback()
+                        return []model.Contact{}, err
+                }</span>
+
+                <span class="cov8" title="1">lastID, err := res.LastInsertId()
+                if err != nil </span><span class="cov8" title="1">{
+                        return []model.Contact{}, err
+                }</span>
+
+                <span class="cov8" title="1">result = append(result, model.Contact{
+                        Id:           int(lastID),
+                        Name:         v.Name,
+                        NoTelp: v.NoTelp,
+                })</span>
+        }
+
+        <span class="cov8" title="1">trx.Commit()
+
+        return</span>
+}
+
+func (repo *contacthttp) Update(id int, req model.ContactRequest) (err error) <span class="cov8" title="1">{
+        defer repo.db.Close()
+
+        ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+        defer cancel()
+
+        trx, err := repo.db.BeginTx(ctx, nil)
+        if err != nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">query := `UPDATE contact SET name = ?, no_telp = ? WHERE id = ?`
+        stmt, err := repo.db.PrepareContext(ctx, query)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Print("prepare update")
+                return
+        }</span>
+
+        <span class="cov8" title="1">_, err = stmt.ExecContext(ctx, req.Name, req.NoTelp, id)
+        if err != nil </span><span class="cov8" title="1">{
+                trx.Rollback()
+                return
+        }</span>
+
+        <span class="cov8" title="1">trx.Commit()
+        
+        return</span>
+}
+
+func (repo *contacthttp) Delete(id int) (err error) <span class="cov8" title="1">{
+        defer repo.db.Close()
+
+        ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+        defer cancel()
+
+        trx, err := repo.db.BeginTx(ctx, nil)
+        if err != nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">query := `DELETE FROM contact WHERE id = ?`
+        stmt, err := repo.db.PrepareContext(ctx, query)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Print("prepare delete")
+                return
+        }</span>
+
+        <span class="cov8" title="1">_, err = stmt.ExecContext(ctx, id)
+        if err != nil </span><span class="cov8" title="1">{
+                trx.Rollback()
+                return
+        }</span>
+
+        <span class="cov8" title="1">trx.Commit()
+
+        return</span>
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package repository
+
+import (
+        "encoding/json"
+        "errors"
+        "os"
+
+        model "contact-go/model"
+)
+
+type contactjson struct {}
+
+func NewContactJsonRepository() *contactjson <span class="cov0" title="0">{
+        return &amp;contactjson{}
+}</span>
+
+func (repo *contactjson) getLastID() (lastID int, err error) <span class="cov0" title="0">{
+        list, err := repo.List()
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">if len(list) == 0 </span><span class="cov0" title="0">{
+                lastID = 0
+        }</span> else<span class="cov0" title="0"> {
+                for _, v := range list </span><span class="cov0" title="0">{
+                        if lastID &lt; int(v.Id) </span><span class="cov0" title="0">{
+                                lastID = int(v.Id)
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">return</span>
+}
+
+func (repo *contactjson) GetIndexById(id int) (index int, value model.Contact, err error) <span class="cov0" title="0">{
+        list, err := repo.List()
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">for i, v := range list </span><span class="cov0" title="0">{
+                if v.Id == id </span><span class="cov0" title="0">{
+                        index = int(i)
+                        value = v
+                        return index, value, nil
+                }</span>
+        }
+        <span class="cov0" title="0">return -1, model.Contact{}, errors.New("id not found")</span>
+}
+
+func (repo *contactjson) updateJSON(list []model.Contact) (err error) <span class="cov0" title="0">{
+        // struct -&gt; JSON
+        write, err := os.Create("data/contact.txt")
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">encoder := json.NewEncoder(write)
+        encoder.Encode(list)
+        return</span>
+}
+
+func (repo *contactjson) List() (result []model.Contact, err error) <span class="cov0" title="0">{
+        // JSON -&gt; struct
+        reader, err := os.Open("data/contact.txt")
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">decoder := json.NewDecoder(reader)
+        decoder.Decode(&amp;result)
+
+        return</span>
+}
+
+func (repo *contactjson) Add(req []model.ContactRequest) (result []model.Contact, err error) <span class="cov0" title="0">{
+        // JSON to struct
+        list, err := repo.List()
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">lastID, err := repo.getLastID()
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">for i, v := range req </span><span class="cov0" title="0">{
+                newContact := model.Contact{
+                        Id:     lastID+1+i,
+                        Name:          v.Name,
+                        NoTelp: v.NoTelp,
+                }
+                list = append(list, newContact)
+                result = append(result, newContact)
+        }</span>
+
+        <span class="cov0" title="0">err = repo.updateJSON(list)
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">return</span>
+}
+
+func (repo *contactjson) Update(id int, req model.ContactRequest) (err error) <span class="cov0" title="0">{
+        index, value, err := repo.GetIndexById(id)
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">list, err := repo.List()
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">if req.Name == "" </span><span class="cov0" title="0">{
+                req.Name = value.Name
+        }</span>
+
+        <span class="cov0" title="0">if req.NoTelp == "" </span><span class="cov0" title="0">{
+                req.NoTelp = value.NoTelp
+        }</span>
+
+        <span class="cov0" title="0">list[index] = model.Contact{
+                Id:     id,
+                Name:   req.Name,
+                NoTelp: req.NoTelp,
+        }
+
+        err = repo.updateJSON(list)
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">return</span>
+}
+
+func (repo *contactjson) Delete(id int) (err error) <span class="cov0" title="0">{
+        list, err := repo.List()
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">index, _, err := repo.GetIndexById(id)
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov0" title="0">deletedItemIndex := index
+        list = append(list[:deletedItemIndex], list[deletedItemIndex+1:]...)
+
+        err = repo.updateJSON(list)
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov0" title="0">return</span>
+}</pre>
+		
+		<pre class="file" id="file13" style="display: none">package repository
+
+import (
+        "errors"
+
+        model "contact-go/model"
+)
+
+type repository struct {}
+
+func NewContactRepository () *repository <span class="cov8" title="1">{
+        return &amp;repository{}
+}</span>
+
+func (repo *repository) getLastID() (lastID int, err error) <span class="cov8" title="1">{
+        list, _ := repo.List()
+
+        if len(list) == 0 </span><span class="cov8" title="1">{
+                lastID = 0
+        }</span> else<span class="cov0" title="0"> {
+                for _, v := range list </span><span class="cov0" title="0">{
+                        if lastID &lt; int(v.Id) </span><span class="cov0" title="0">{
+                                lastID = int(v.Id)
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+func (repo *repository) GetIndexById(id int) (index int, value model.Contact, err error) <span class="cov8" title="1">{
+        for i, v := range model.ContactSlice </span><span class="cov8" title="1">{
+                if v.Id == id </span><span class="cov8" title="1">{
+                        index = int(i)
+                        value = v
+                        return index, value, nil
+                }</span>
+        }
+        <span class="cov0" title="0">return -1, model.Contact{}, errors.New("id not found")</span>
+}
+
+func (repo *repository) List() ([]model.Contact, error) <span class="cov8" title="1">{
+        return model.ContactSlice, nil
+}</span>
+
+func (repo *repository) Add(req []model.ContactRequest) (result []model.Contact, err error) <span class="cov8" title="1">{
+        lastID, err := repo.getLastID()
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">for i, v := range req </span><span class="cov8" title="1">{
+                newContact := model.Contact{
+                        Id:     lastID+1+i,
+                        Name:          v.Name,
+                        NoTelp: v.NoTelp,
+                }
+                model.ContactSlice = append(model.ContactSlice, newContact)
+                result = append(result, newContact)
+
+        }</span>
+        <span class="cov8" title="1">return</span>
+}
+
+func (repo *repository) Update(id int, req model.ContactRequest) (err error) <span class="cov8" title="1">{
+        index, value, err := repo.GetIndexById(id)
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">if req.Name == "" </span><span class="cov0" title="0">{
+                req.Name = value.Name
+        }</span>
+
+        <span class="cov8" title="1">if req.NoTelp == "" </span><span class="cov0" title="0">{
+                req.NoTelp = value.NoTelp
+        }</span>
+
+        <span class="cov8" title="1">model.ContactSlice[index] = model.Contact{
+                Id:     value.Id,
+                Name:   req.Name,
+                NoTelp: req.NoTelp,
+        }
+
+        return</span>
+}
+
+func (repo *repository) Delete(id int) (err error) <span class="cov8" title="1">{
+        index, _, err := repo.GetIndexById(id)
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">deletedItemIndex := index
+        model.ContactSlice = append(model.ContactSlice[:deletedItemIndex], model.ContactSlice[deletedItemIndex+1:]...)
+        return</span>
+}</pre>
+		
+		<pre class="file" id="file14" style="display: none">package usecase
+
+import (
+        "contact-go/model"
+        "contact-go/repository"
+        "errors"
+        "net/http"
+        "strconv"
+)
+
+type usecase struct {
+        repo repository.ContactRepositorier
+}
+
+func NewUseCase(repository repository.ContactRepositorier) *usecase <span class="cov8" title="1">{
+        return &amp;usecase{
+                repo: repository,
+        }
+}</span>
+
+func (uc *usecase) IsValidID(idStr string) (int, model.ContactResponse, error) <span class="cov8" title="1">{
+        id, err := strconv.Atoi(idStr)
+        if err != nil </span><span class="cov8" title="1">{
+                return 0, model.ContactResponse{
+                        Status:  http.StatusBadRequest,
+                        Message: err.Error(),
+                        Data:    nil,
+                }, err
+        }</span>
+        <span class="cov8" title="1">if id &lt;= 0 </span><span class="cov8" title="1">{
+                return 0, model.ContactResponse{
+                        Status:  http.StatusBadRequest,
+                        Message: "Id should not be more than 0",
+                        Data:    nil,
+                }, errors.New("id should not be more than 0")
+        }</span>
+        <span class="cov8" title="1">return id, model.ContactResponse{}, nil</span>
+}
+
+func (uc *usecase) IsValidNameAndNoTelp(name string, noTelp string) (model.ContactResponse, error) <span class="cov8" title="1">{
+        if name == "" </span><span class="cov8" title="1">{
+                return model.ContactResponse{
+                        Status:  http.StatusBadRequest,
+                        Message: "Name should not be empty",
+                        Data:    nil,
+                }, errors.New("name should not be empty")
+        }</span>
+
+        <span class="cov8" title="1">if noTelp == "" || noTelp == "0" </span><span class="cov8" title="1">{
+                return model.ContactResponse{
+                        Status:  http.StatusBadRequest,
+                        Message: "No telp should not be empty",
+                        Data:    nil,
+                }, errors.New("no telp should not be empty")
+        }</span>
+        <span class="cov8" title="1">return model.ContactResponse{}, nil</span>
+}
+
+func (uc *usecase) List() (model.ContactResponse, error) <span class="cov8" title="1">{
+        res, err := uc.repo.List()
+        if err != nil </span><span class="cov8" title="1">{
+                return model.ContactResponse{
+                        Status:  http.StatusInternalServerError,
+                        Message: "Internal server error",
+                        Data:    nil,
+                }, err
+        }</span>
+        <span class="cov8" title="1">return model.ContactResponse{
+                Status:  http.StatusOK,
+                Message: "Ok",
+                Data:    res,
+        }, nil</span>
+}
+
+func (uc *usecase) Add(req []model.ContactRequest) (model.ContactResponse, error) <span class="cov8" title="1">{
+        for _, v := range req </span><span class="cov8" title="1">{
+                res, err := uc.IsValidNameAndNoTelp(v.Name, v.NoTelp)
+                if err != nil </span><span class="cov8" title="1">{
+                        return res, err
+                }</span>
+        }
+
+        <span class="cov8" title="1">res, err := uc.repo.Add(req)
+        if err != nil </span><span class="cov8" title="1">{
+                return model.ContactResponse{
+                        Status:  http.StatusInternalServerError,
+                        Message: "Internal server error",
+                        Data:    nil,
+                }, err
+        }</span>
+        <span class="cov8" title="1">return model.ContactResponse{
+                Status:  http.StatusCreated,
+                Message: "Created",
+                Data:    res,
+        }, nil</span>
+}
+
+func (uc *usecase) Update(idStr string, req model.ContactRequest) (model.ContactResponse, error) <span class="cov8" title="1">{
+        id, res, err := uc.IsValidID(idStr)
+        if err != nil </span><span class="cov8" title="1">{
+                return res, err
+        }</span>
+
+        <span class="cov8" title="1">res, err = uc.IsValidNameAndNoTelp(req.Name, req.NoTelp)
+        if err != nil </span><span class="cov8" title="1">{
+                return res, err
+        }</span>
+
+        <span class="cov8" title="1">err = uc.repo.Update(id, req)
+        if err != nil </span><span class="cov8" title="1">{
+                return model.ContactResponse{
+                        Status:  http.StatusInternalServerError,
+                        Message: "Internal server error",
+                        Data:    nil,
+                }, err
+        }</span>
+        <span class="cov8" title="1">return model.ContactResponse{
+                Status:  http.StatusOK,
+                Message: "Updated",
+                Data:    nil,
+        }, nil</span>
+}
+
+func (uc *usecase) Delete(idStr string) (model.ContactResponse, error) <span class="cov8" title="1">{
+        id, res, err := uc.IsValidID(idStr)
+        if err != nil </span><span class="cov8" title="1">{
+                return res, err
+        }</span>
+
+        <span class="cov8" title="1">err = uc.repo.Delete(id)
+        if err != nil </span><span class="cov8" title="1">{
+                return model.ContactResponse{
+                        Status:  http.StatusInternalServerError,
+                        Message: "Internal server error",
+                        Data:    nil,
+                }, err
+        }</span>
+        <span class="cov8" title="1">return model.ContactResponse{
+                Status:  http.StatusOK,
+                Message: "Deleted",
+                Data:    nil,
+        }, nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

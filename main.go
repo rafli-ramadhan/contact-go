@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	config, err := config.LoadConfig()
+	config, err := config.LoadConfig(".env", "./../config")
 	if err != nil {
 		panic(err)
 	}
@@ -22,7 +22,7 @@ func main() {
 	case "json":
 		contactRepo := repository.NewContactJsonRepository()
 		contactHandler := handler.NewContactHttpJsonHandler(contactRepo)
-		HTTPServer(config, contactHandler)
+		HTTPJsonServer(config, contactHandler)
 	case "mysql":
 		db := client.GetDB(config.Storage).GetMysqlConnection()
 		contactRepo := repository.NewContactHTTPRepository(db)
@@ -62,7 +62,7 @@ func HTTPDBServer(config *config.Config, contactHandler handler.ContactHttpDbHan
 	}
 }
 
-func HTTPServer(config *config.Config, contactHandler handler.ContactHttpJsonHandlerInterface) {
+func HTTPJsonServer(config *config.Config, contactHandler handler.ContactHttpJsonHandlerInterface) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/contact", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {

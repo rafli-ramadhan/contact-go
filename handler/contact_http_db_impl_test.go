@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestContactHTTPHandler(t *testing.T) {
+func TestHandlerHTTP(t *testing.T) {
 	t.Run("test get list contact success", func(t *testing.T) {
 		ucMock := mocks.NewUseCaseMock()
 		handler := NewContactHttpDbHandler(ucMock)
