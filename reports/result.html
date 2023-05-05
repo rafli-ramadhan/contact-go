@@ -57,7 +57,7 @@
 				
 				<option value="file0">contact-go/config/config.go (60.0%)</option>
 				
-				<option value="file1">contact-go/config/db.go (100.0%)</option>
+				<option value="file1">contact-go/config/db_config.go (100.0%)</option>
 				
 				<option value="file2">contact-go/db/client.go (100.0%)</option>
 				
@@ -77,13 +77,15 @@
 				
 				<option value="file10">contact-go/mocks/contact_json_impl_repository_mock.go (0.0%)</option>
 				
-				<option value="file11">contact-go/repository/contact_http_db_impl.go (100.0%)</option>
+				<option value="file11">contact-go/repository/contact_http_db_gorm_impl.go (0.0%)</option>
 				
-				<option value="file12">contact-go/repository/contact_http_json_impl.go (0.0%)</option>
+				<option value="file12">contact-go/repository/contact_http_db_impl.go (100.0%)</option>
 				
-				<option value="file13">contact-go/repository/contact_impl.go (76.3%)</option>
+				<option value="file13">contact-go/repository/contact_http_json_impl.go (0.0%)</option>
 				
-				<option value="file14">contact-go/usecase/contact_http_impl.go (100.0%)</option>
+				<option value="file14">contact-go/repository/contact_impl.go (76.3%)</option>
+				
+				<option value="file15">contact-go/usecase/contact_http_impl.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -199,34 +201,37 @@ import (
         "contact-go/config"
         "database/sql"
         _ "github.com/go-sql-driver/mysql"
+        "gorm.io/driver/mysql"
+        "gorm.io/gorm"
 )
-
-const (
-        mysql           = "mysql"
-        postgresql = "postgres"
-)
-
-type dbOption struct {
-        Database string
-}
-
-func GetDB(dbSelected string) dbOption <span class="cov8" title="1">{
-        return dbOption{
-                Database: dbSelected,
-        }
-}</span>
 
 var (
         conDB                           = config.GetConf()
         connString string = ""
 )
 
+type dbOption struct {
+        Database string
+}
+
+func GetDBConnection(dbSelected string) dbOption <span class="cov8" title="1">{
+        return dbOption{
+                Database: dbSelected,
+        }
+}</span>
+
 func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB, err error) <span class="cov8" title="1">{
         var driver string
-        if dbOpt.Database == mysql </span><span class="cov8" title="1">{
-                driver = mysql
+        if dbOpt.Database == "mysql" </span><span class="cov8" title="1">{
+                driver = "mysql"
                 // "username:password@tcp(host:port)/database_name"
-                connString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%v", conDB.Mysqlconf.Username, conDB.Mysqlconf.Password, conDB.Mysqlconf.Host, conDB.Mysqlconf.Port, conDB.Mysqlconf.Database)
+                connString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%v", 
+                        conDB.Mysqlconf.Username, 
+                        conDB.Mysqlconf.Password, 
+                        conDB.Mysqlconf.Host, 
+                        conDB.Mysqlconf.Port, 
+                        conDB.Mysqlconf.Database,
+                )
         }</span>
 
         <span class="cov8" title="1">db, err = sql.Open(driver, connString)
@@ -244,7 +249,51 @@ func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB, err error) <span class="
 
         return</span>
 }
-</pre>
+
+func (dbOpt dbOption) GetMysqlGormConnection() (db *gorm.DB, err error) <span class="cov8" title="1">{
+        var driver gorm.Dialector
+        if dbOpt.Database == "mysql-gorm" </span><span class="cov8" title="1">{
+                // "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&amp;parseTime=True&amp;loc=Local"
+                connString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%v?charset=utf8mb4&amp;parseTime=True&amp;loc=Local", 
+                        conDB.Mysqlconf.Username, 
+                        conDB.Mysqlconf.Password, 
+                        conDB.Mysqlconf.Host, 
+                        conDB.Mysqlconf.Port, 
+                        conDB.Mysqlconf.Database,
+                )
+                driver = mysql.Open(connString)
+        }</span> else<span class="cov8" title="1"> {
+                driver = mysql.Open("")
+        }</span>
+
+        // customize using mysql.New()
+        // db, err = gorm.Open(
+        //         mysql.New(
+        //                 mysql.Config{
+        //                         DriverName: "mysql",
+        //                         DSN:                connString,
+        //                 },
+        //         ), &amp;gorm.Config{},
+        // )
+
+        <span class="cov8" title="1">db, err = gorm.Open(
+                driver, &amp;gorm.Config{
+                        SkipDefaultTransaction: true,
+                        PrepareStmt:                        true,
+                },
+        )
+        if err != nil </span><span class="cov8" title="1">{
+                log.Print("EROROROROREFJKJDSF")
+                log.Print(err)
+                return
+        }</span>
+
+        <span class="cov8" title="1">db.Begin()
+
+        log.Printf("Running mysql on %s on port %s\n", conDB.Mysqlconf.Host, conDB.Mysqlconf.Port)
+
+        return</span>
+}</pre>
 		
 		<pre class="file" id="file3" style="display: none">package handler
 
@@ -693,11 +742,25 @@ func main() <span class="cov0" title="0">{
                 contactHandler := handler.NewContactHttpJsonHandler(contactRepo)
                 HTTPJsonServer(config, contactHandler)</span>
         case "mysql":<span class="cov0" title="0">
-                db, err := client.GetDB(config.Storage).GetMysqlConnection()
+                db, err := client.GetDBConnection(config.Storage).GetMysqlConnection()
                 if err != nil </span><span class="cov0" title="0">{
                         panic(err)</span>
                 }
                 <span class="cov0" title="0">contactRepo := repository.NewContactHTTPRepository(db)
+                useCase := usecase.NewUseCase(contactRepo)
+                contacHandler := handler.NewContactHttpDbHandler(useCase)
+                HTTPDBServer(config, contacHandler)</span>
+        case "mysql-gorm":<span class="cov0" title="0">
+                dbCOnn, err := client.GetDBConnection(config.Storage).GetMysqlGormConnection()
+                if err != nil </span><span class="cov0" title="0">{
+                        panic(err)</span>
+                }
+
+                <span class="cov0" title="0">db, err := dbCOnn.DB()
+                if err != nil </span><span class="cov0" title="0">{
+                        panic(err)</span>
+                }
+                <span class="cov0" title="0">contactRepo := repository.NewContactGormHTTPRepository(db)
                 useCase := usecase.NewUseCase(contactRepo)
                 contacHandler := handler.NewContactHttpDbHandler(useCase)
                 HTTPDBServer(config, contacHandler)</span>
@@ -926,6 +989,153 @@ func (m *JsonRepoMock) List() (result []model.Contact, err error) <span class="c
 
 import (
         "contact-go/model"
+        //"context"
+        "database/sql"
+        //"log"
+        //"time"
+
+        // "gorm.io/gorm"
+)
+
+type contactgormhttp struct{
+        db *sql.DB
+}
+
+func NewContactGormHTTPRepository(client *sql.DB) *contactgormhttp <span class="cov0" title="0">{
+        return &amp;contactgormhttp{
+                db: client,
+        }
+}</span>
+
+func (repo *contactgormhttp) List() (result []model.Contact, err error) <span class="cov0" title="0">{
+        // ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+        // defer cancel()
+
+        // // prepare statement
+        // query := `SELECT id, name, no_telp FROM contact`
+        // stmt, err := repo.db.PrepareContext(ctx, query)
+        // if err != nil {
+        //         log.Print("prepare list")
+        //         return
+        // }
+
+        // res, err := stmt.QueryContext(ctx)
+        // if err != nil {
+        //         return
+        // }
+
+        // for res.Next() {
+        //         var temp model.Contact
+        //         res.Scan(&amp;temp.Id, &amp;temp.Name, &amp;temp.NoTelp)
+        //         result = append(result, temp)
+        // }
+
+        return
+}</span>
+
+func (repo *contactgormhttp) Add(req []model.ContactRequest) (result []model.Contact, err error) <span class="cov0" title="0">{
+        // ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+        // defer cancel()
+
+        // query := `INSERT INTO contact (name, no_telp) value (?,?)`
+        // trx, err := repo.db.BeginTx(ctx, nil)
+        // if err != nil {
+        //         return
+        // }
+
+        // stmt, err := repo.db.PrepareContext(ctx, query)
+        // if err != nil {
+        //         log.Print("prepare add")
+        //         return
+        // }
+
+        // for _, v := range req {
+        //         res, err := stmt.ExecContext(ctx, v.Name, v.NoTelp)
+        //         if err != nil {
+        //                 trx.Rollback()
+        //                 return []model.Contact{}, err
+        //         }
+
+        //         lastID, err := res.LastInsertId()
+        //         if err != nil {
+        //                 return []model.Contact{}, err
+        //         }
+
+        //         result = append(result, model.Contact{
+        //                 Id:           int(lastID),
+        //                 Name:         v.Name,
+        //                 NoTelp: v.NoTelp,
+        //         })
+        // }
+
+        // trx.Commit()
+
+        return
+}</span>
+
+func (repo *contactgormhttp) Update(id int, req model.ContactRequest) (err error) <span class="cov0" title="0">{
+        // defer repo.db.Close()
+
+        // ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+        // defer cancel()
+
+        // trx, err := repo.db.BeginTx(ctx, nil)
+        // if err != nil {
+        //         return
+        // }
+
+        // query := `UPDATE contact SET name = ?, no_telp = ? WHERE id = ?`
+        // stmt, err := repo.db.PrepareContext(ctx, query)
+        // if err != nil {
+        //         log.Print("prepare update")
+        //         return
+        // }
+
+        // _, err = stmt.ExecContext(ctx, req.Name, req.NoTelp, id)
+        // if err != nil {
+        //         trx.Rollback()
+        //         return
+        // }
+
+        // trx.Commit()
+
+        return
+}</span>
+
+func (repo *contactgormhttp) Delete(id int) (err error) <span class="cov0" title="0">{
+        // defer repo.db.Close()
+
+        // ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+        // defer cancel()
+
+        // trx, err := repo.db.BeginTx(ctx, nil)
+        // if err != nil {
+        //         return
+        // }
+
+        // query := `DELETE FROM contact WHERE id = ?`
+        // stmt, err := repo.db.PrepareContext(ctx, query)
+        // if err != nil {
+        //         log.Print("prepare delete")
+        //         return
+        // }
+
+        // _, err = stmt.ExecContext(ctx, id)
+        // if err != nil {
+        //         trx.Rollback()
+        //         return
+        // }
+
+        // trx.Commit()
+
+        return
+}</span>
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package repository
+
+import (
+        "contact-go/model"
         "context"
         "database/sql"
         "log"
@@ -1071,7 +1281,7 @@ func (repo *contacthttp) Delete(id int) (err error) <span class="cov8" title="1"
 }
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package repository
+		<pre class="file" id="file13" style="display: none">package repository
 
 import (
         "encoding/json"
@@ -1227,7 +1437,7 @@ func (repo *contactjson) Delete(id int) (err error) <span class="cov0" title="0"
         <span class="cov0" title="0">return</span>
 }</pre>
 		
-		<pre class="file" id="file13" style="display: none">package repository
+		<pre class="file" id="file14" style="display: none">package repository
 
 import (
         "errors"
@@ -1324,7 +1534,7 @@ func (repo *repository) Delete(id int) (err error) <span class="cov8" title="1">
         return</span>
 }</pre>
 		
-		<pre class="file" id="file14" style="display: none">package usecase
+		<pre class="file" id="file15" style="display: none">package usecase
 
 import (
         "contact-go/model"

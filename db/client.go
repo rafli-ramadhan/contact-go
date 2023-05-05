@@ -8,34 +8,37 @@ import (
 	"contact-go/config"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
-
-const (
-	mysql	   = "mysql"
-	postgresql = "postgres"
-)
-
-type dbOption struct {
-	Database string
-}
-
-func GetDB(dbSelected string) dbOption {
-	return dbOption{
-		Database: dbSelected,
-	}
-}
 
 var (
 	conDB 			  = config.GetConf()
 	connString string = ""
 )
 
+type dbOption struct {
+	Database string
+}
+
+func GetDBConnection(dbSelected string) dbOption {
+	return dbOption{
+		Database: dbSelected,
+	}
+}
+
 func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB, err error) {
 	var driver string
-	if dbOpt.Database == mysql {
-		driver = mysql
+	if dbOpt.Database == "mysql" {
+		driver = "mysql"
 		// "username:password@tcp(host:port)/database_name"
-		connString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%v", conDB.Mysqlconf.Username, conDB.Mysqlconf.Password, conDB.Mysqlconf.Host, conDB.Mysqlconf.Port, conDB.Mysqlconf.Database)
+		connString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%v", 
+			conDB.Mysqlconf.Username, 
+			conDB.Mysqlconf.Password, 
+			conDB.Mysqlconf.Host, 
+			conDB.Mysqlconf.Port, 
+			conDB.Mysqlconf.Database,
+		)
 	}
 
 	db, err = sql.Open(driver, connString)
@@ -50,6 +53,51 @@ func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB, err error) {
 	db.SetMaxOpenConns(5)
 	db.SetConnMaxIdleTime(10*time.Minute)
 	db.SetConnMaxLifetime(60*time.Minute)
+
+	return
+}
+
+func (dbOpt dbOption) GetMysqlGormConnection() (db *gorm.DB, err error) {
+	var driver gorm.Dialector
+	if dbOpt.Database == "mysql-gorm" {
+		// "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+		connString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local", 
+			conDB.Mysqlconf.Username, 
+			conDB.Mysqlconf.Password, 
+			conDB.Mysqlconf.Host, 
+			conDB.Mysqlconf.Port, 
+			conDB.Mysqlconf.Database,
+		)
+		driver = mysql.Open(connString)
+	} else {
+		driver = mysql.Open("")
+	}
+
+	// customize using mysql.New()
+	// db, err = gorm.Open(
+	// 	mysql.New(
+	// 		mysql.Config{
+	// 			DriverName: "mysql",
+	// 			DSN:		connString,
+	// 		},
+	// 	), &gorm.Config{},
+	// )
+
+	db, err = gorm.Open(
+		driver, &gorm.Config{
+			SkipDefaultTransaction: true,
+			PrepareStmt:			true,
+		},
+	)
+	if err != nil {
+		log.Print("EROROROROREFJKJDSF")
+		log.Print(err)
+		return
+	}
+
+	db.Begin()
+
+	log.Printf("Running mysql on %s on port %s\n", conDB.Mysqlconf.Host, conDB.Mysqlconf.Port)
 
 	return
 }

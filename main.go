@@ -24,11 +24,25 @@ func main() {
 		contactHandler := handler.NewContactHttpJsonHandler(contactRepo)
 		HTTPJsonServer(config, contactHandler)
 	case "mysql":
-		db, err := client.GetDB(config.Storage).GetMysqlConnection()
+		db, err := client.GetDBConnection(config.Storage).GetMysqlConnection()
 		if err != nil {
 			panic(err)
 		}
 		contactRepo := repository.NewContactHTTPRepository(db)
+		useCase := usecase.NewUseCase(contactRepo)
+		contacHandler := handler.NewContactHttpDbHandler(useCase)
+		HTTPDBServer(config, contacHandler)
+	case "mysql-gorm":
+		dbCOnn, err := client.GetDBConnection(config.Storage).GetMysqlGormConnection()
+		if err != nil {
+			panic(err)
+		}
+
+		db, err := dbCOnn.DB()
+		if err != nil {
+			panic(err)
+		}
+		contactRepo := repository.NewContactGormHTTPRepository(db)
 		useCase := usecase.NewUseCase(contactRepo)
 		contacHandler := handler.NewContactHttpDbHandler(useCase)
 		HTTPDBServer(config, contacHandler)
