@@ -30,15 +30,18 @@ var (
 	connString string = ""
 )
 
-func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB) {
+func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB, err error) {
+	var driver string
 	if dbOpt.Database == mysql {
+		driver = mysql
 		// "username:password@tcp(host:port)/database_name"
 		connString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%v", conDB.Mysqlconf.Username, conDB.Mysqlconf.Password, conDB.Mysqlconf.Host, conDB.Mysqlconf.Port, conDB.Mysqlconf.Database)
 	}
 
-	db, err := sql.Open(mysql, connString)
+	db, err = sql.Open(driver, connString)
 	if err != nil {
-		panic(err)
+		log.Print(err)
+		return
 	}
 
 	log.Printf("Running mysql on %s on port %s\n", conDB.Mysqlconf.Host, conDB.Mysqlconf.Port)

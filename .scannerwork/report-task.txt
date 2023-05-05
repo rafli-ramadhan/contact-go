@@ -2,5 +2,5 @@ projectKey=Contact-Go
 serverUrl=http://localhost:9000
 serverVersion=10.0.0.68432
 dashboardUrl=http://localhost:9000/dashboard?id=Contact-Go
-ceTaskId=AYfqiNbsLAanVs0kYZ4m
-ceTaskUrl=http://localhost:9000/api/ce/task?id=AYfqiNbsLAanVs0kYZ4m
+ceTaskId=AYfqrmLMLAanVs0kYZ4n
+ceTaskUrl=http://localhost:9000/api/ce/task?id=AYfqrmLMLAanVs0kYZ4n

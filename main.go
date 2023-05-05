@@ -24,7 +24,10 @@ func main() {
 		contactHandler := handler.NewContactHttpJsonHandler(contactRepo)
 		HTTPJsonServer(config, contactHandler)
 	case "mysql":
-		db := client.GetDB(config.Storage).GetMysqlConnection()
+		db, err := client.GetDB(config.Storage).GetMysqlConnection()
+		if err != nil {
+			panic(err)
+		}
 		contactRepo := repository.NewContactHTTPRepository(db)
 		useCase := usecase.NewUseCase(contactRepo)
 		contacHandler := handler.NewContactHttpDbHandler(useCase)

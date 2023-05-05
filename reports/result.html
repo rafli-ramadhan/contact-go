@@ -59,7 +59,7 @@
 				
 				<option value="file1">contact-go/config/db.go (100.0%)</option>
 				
-				<option value="file2">contact-go/db/client.go (91.7%)</option>
+				<option value="file2">contact-go/db/client.go (100.0%)</option>
 				
 				<option value="file3">contact-go/handler/contact_http_db_impl.go (91.5%)</option>
 				
@@ -221,16 +221,19 @@ var (
         connString string = ""
 )
 
-func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB) <span class="cov8" title="1">{
+func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB, err error) <span class="cov8" title="1">{
+        var driver string
         if dbOpt.Database == mysql </span><span class="cov8" title="1">{
+                driver = mysql
                 // "username:password@tcp(host:port)/database_name"
                 connString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%v", conDB.Mysqlconf.Username, conDB.Mysqlconf.Password, conDB.Mysqlconf.Host, conDB.Mysqlconf.Port, conDB.Mysqlconf.Database)
         }</span>
 
-        <span class="cov8" title="1">db, err := sql.Open(mysql, connString)
-        if err != nil </span><span class="cov0" title="0">{
-                panic(err)</span>
-        }
+        <span class="cov8" title="1">db, err = sql.Open(driver, connString)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Print(err)
+                return
+        }</span>
 
         <span class="cov8" title="1">log.Printf("Running mysql on %s on port %s\n", conDB.Mysqlconf.Host, conDB.Mysqlconf.Port)
         
@@ -690,8 +693,11 @@ func main() <span class="cov0" title="0">{
                 contactHandler := handler.NewContactHttpJsonHandler(contactRepo)
                 HTTPJsonServer(config, contactHandler)</span>
         case "mysql":<span class="cov0" title="0">
-                db := client.GetDB(config.Storage).GetMysqlConnection()
-                contactRepo := repository.NewContactHTTPRepository(db)
+                db, err := client.GetDB(config.Storage).GetMysqlConnection()
+                if err != nil </span><span class="cov0" title="0">{
+                        panic(err)</span>
+                }
+                <span class="cov0" title="0">contactRepo := repository.NewContactHTTPRepository(db)
                 useCase := usecase.NewUseCase(contactRepo)
                 contacHandler := handler.NewContactHttpDbHandler(useCase)
                 HTTPDBServer(config, contacHandler)</span>

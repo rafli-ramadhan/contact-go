@@ -139,8 +139,6 @@ func (client *Mysqlclient) TestAddContactFailed2() {
 	// data dog
 	client.mock.ExpectBegin()
 	client.mock.ExpectPrepare(regexp.QuoteMeta("INSERT INTO contact (name, no_telp) value (?,?)")).
-		ExpectExec().
-		WithArgs("Andi", "0884275327327").
 		WillReturnError(errors.New("some error"))
 	client.mock.ExpectRollback()
 
@@ -163,6 +161,8 @@ func (client *Mysqlclient) TestAddContactFailed3() {
 	// data dog
 	client.mock.ExpectBegin()
 	client.mock.ExpectPrepare(regexp.QuoteMeta("INSERT INTO contact (name, no_telp) value (?,?)")).
+		ExpectExec().
+		WithArgs("Andi", "0884275327327").
 		WillReturnError(errors.New("some error"))
 	client.mock.ExpectRollback()
 

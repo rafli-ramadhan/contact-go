@@ -44,7 +44,7 @@ func TestHandlerHTTP(t *testing.T) {
 		require.Equal(t, http.StatusOK, response.StatusCode)
 	})
 
-	t.Run("test get list contact failed", func(t *testing.T) {
+	t.Run("test get list contact failed 1", func(t *testing.T) {
 		ucMock := mocks.NewUseCaseMock()
 		handler := NewContactHttpDbHandler(ucMock)
 
