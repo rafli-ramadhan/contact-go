@@ -75,17 +75,15 @@
 				
 				<option value="file9">contact-go/mocks/contact_http_impl_usecase_mock.go (100.0%)</option>
 				
-				<option value="file10">contact-go/mocks/contact_json_impl_repository_mock.go (0.0%)</option>
+				<option value="file10">contact-go/repository/contact_http_db_gorm_impl.go (70.4%)</option>
 				
-				<option value="file11">contact-go/repository/contact_http_db_gorm_impl.go (0.0%)</option>
+				<option value="file11">contact-go/repository/contact_http_db_impl.go (100.0%)</option>
 				
-				<option value="file12">contact-go/repository/contact_http_db_impl.go (100.0%)</option>
+				<option value="file12">contact-go/repository/contact_http_json_impl.go (90.3%)</option>
 				
-				<option value="file13">contact-go/repository/contact_http_json_impl.go (90.3%)</option>
+				<option value="file13">contact-go/repository/contact_impl.go (86.8%)</option>
 				
-				<option value="file14">contact-go/repository/contact_impl.go (86.8%)</option>
-				
-				<option value="file15">contact-go/usecase/contact_http_impl.go (100.0%)</option>
+				<option value="file14">contact-go/usecase/contact_http_impl.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -203,6 +201,7 @@ import (
         _ "github.com/go-sql-driver/mysql"
         "gorm.io/driver/mysql"
         "gorm.io/gorm"
+        "gorm.io/gorm/logger"
 )
 
 var (
@@ -264,21 +263,24 @@ func (dbOpt dbOption) GetMysqlGormConnection() (*gorm.DB, error) <span class="co
         }</span>
 
         // customize using mysql.New()
-        <span class="cov8" title="1">db, err := gorm.Open(
-                mysql.New(
-                        mysql.Config{
-                                DriverName: "mysql",
-                                DSN:                connString,
-                        },
-                ), &amp;gorm.Config{},
-        )
-
         // db, err := gorm.Open(
-        //         mysql.Open(connString), &amp;gorm.Config{
-        //                 SkipDefaultTransaction: true,
-        //                 PrepareStmt:                        true,
-        //         },
+        //         mysql.New(
+        //                 mysql.Config{
+        //                         DriverName: "mysql",
+        //                         DSN:                connString,
+        //                 },
+        //         ), &amp;gorm.Config{
+        //                 Logger: newLogger,
+        // },
         // )
+
+        <span class="cov8" title="1">db, err := gorm.Open(
+                mysql.Open(connString), &amp;gorm.Config{
+                        Logger:                                 logger.Default.LogMode(logger.Info),
+                        SkipDefaultTransaction: true,
+                        PrepareStmt:                        true,
+                },
+        )
         if err != nil </span><span class="cov8" title="1">{
                 log.Print(err)
                 return nil, err
@@ -950,37 +952,10 @@ func (m *UsecaseMock) Delete(idStr string) (model.ContactResponse, error) <span 
         return result, err
 }</pre>
 		
-		<pre class="file" id="file10" style="display: none">package mocks
+		<pre class="file" id="file10" style="display: none">package repository
 
 import (
         "contact-go/model"
-        "github.com/stretchr/testify/mock"
-)
-
-type JsonRepoMock struct {
-        mock.Mock
-}
-
-func NewJsonRepoMock() *JsonRepoMock <span class="cov0" title="0">{
-        return &amp;JsonRepoMock{}
-}</span>
-
-func (m *JsonRepoMock) UpdateJSON(list []model.Contact) (err error) <span class="cov0" title="0">{
-        return nil
-}</span>
-
-func (m *JsonRepoMock) List() (result []model.Contact, err error) <span class="cov0" title="0">{
-        ret := m.Called()
-        result = ret.Get(0).([]model.Contact)
-        return result, nil
-}</span>
-</pre>
-		
-		<pre class="file" id="file11" style="display: none">package repository
-
-import (
-        "contact-go/model"
-        // "database/sql"
         "gorm.io/gorm"
 )
 
@@ -988,7 +963,7 @@ type contactgormhttp struct{
         db *gorm.DB
 }
 
-func NewContactGormHTTPRepository(client *gorm.DB) *contactgormhttp <span class="cov0" title="0">{
+func NewContactGormHTTPRepository(client *gorm.DB) *contactgormhttp <span class="cov8" title="1">{
         return &amp;contactgormhttp{
                 db: client,
         }
@@ -999,38 +974,36 @@ type contact struct {
         NoTelp string        `gorm:"column:no_telp" json:"no_telp"`
 }
 
-func (repo *contactgormhttp) List() (result []model.Contact, err error) <span class="cov0" title="0">{
+func (repo *contactgormhttp) List() (result []model.Contact, err error) <span class="cov8" title="1">{
         query := repo.db.Model(&amp;contact{}).Find(&amp;result)
         err = query.Error
         return
 }</span>
 
-func (repo *contactgormhttp) Add(req []model.ContactRequest) (result []model.Contact, err error) <span class="cov0" title="0">{
-        for _, v := range req </span><span class="cov0" title="0">{
-                query := repo.db.Model(&amp;contact{}).
-                        Begin().
-                        Create(&amp;v)
+func (repo *contactgormhttp) Add(req []model.ContactRequest) (result []model.Contact, err error) <span class="cov8" title="1">{
+        query := repo.db.Model(&amp;contact{}).
+                Begin().
+                Create(&amp;req)
 
-                err = query.Error
-                if err != nil </span><span class="cov0" title="0">{
-                        query.Rollback()
-                        return
-                }</span>
+        err = query.Error
+        if err != nil </span><span class="cov8" title="1">{
+                query.Rollback()
+                return
+        }</span>
 
-                <span class="cov0" title="0">err = query.Commit().Error</span>
-        }
+        <span class="cov0" title="0">err = query.Commit().Error
 
-        <span class="cov0" title="0">return</span>
+        return</span>
 }
 
-func (repo *contactgormhttp) Update(id int, req model.ContactRequest) (err error) <span class="cov0" title="0">{
+func (repo *contactgormhttp) Update(id int, req model.ContactRequest) (err error) <span class="cov8" title="1">{
         query := repo.db.Model(&amp;contact{}).
                 Begin().
                 Where("id", id).
                 Updates(req)
 
         err = query.Error
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 query.Rollback()
                 return
         }</span>
@@ -1041,14 +1014,14 @@ func (repo *contactgormhttp) Update(id int, req model.ContactRequest) (err error
         return</span>
 }
 
-func (repo *contactgormhttp) Delete(id int) (err error) <span class="cov0" title="0">{
+func (repo *contactgormhttp) Delete(id int) (err error) <span class="cov8" title="1">{
         query := repo.db.Model(&amp;contact{}).
                 Begin().
                 Where("id", id).
                 Delete(contact{})
 
         err = query.Error
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 query.Rollback()
                 return
         }</span>
@@ -1059,7 +1032,7 @@ func (repo *contactgormhttp) Delete(id int) (err error) <span class="cov0" title
         return</span>
 }</pre>
 		
-		<pre class="file" id="file12" style="display: none">package repository
+		<pre class="file" id="file11" style="display: none">package repository
 
 import (
         "contact-go/model"
@@ -1208,7 +1181,7 @@ func (repo *contacthttp) Delete(id int) (err error) <span class="cov8" title="1"
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package repository
+		<pre class="file" id="file12" style="display: none">package repository
 
 import (
         "encoding/json"
@@ -1368,7 +1341,7 @@ func (repo *contactjson) Delete(id int) (err error) <span class="cov8" title="1"
         <span class="cov8" title="1">return</span>
 }</pre>
 		
-		<pre class="file" id="file14" style="display: none">package repository
+		<pre class="file" id="file13" style="display: none">package repository
 
 import (
         "errors"
@@ -1465,7 +1438,7 @@ func (repo *repository) Delete(id int) (err error) <span class="cov8" title="1">
         return</span>
 }</pre>
 		
-		<pre class="file" id="file15" style="display: none">package usecase
+		<pre class="file" id="file14" style="display: none">package usecase
 
 import (
         "contact-go/model"

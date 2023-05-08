@@ -2,7 +2,6 @@ package repository
 
 import (
 	"contact-go/model"
-	// "database/sql"
 	"gorm.io/gorm"
 )
 
@@ -28,19 +27,17 @@ func (repo *contactgormhttp) List() (result []model.Contact, err error) {
 }
 
 func (repo *contactgormhttp) Add(req []model.ContactRequest) (result []model.Contact, err error) {
-	for _, v := range req {
-		query := repo.db.Model(&contact{}).
-			Begin().
-			Create(&v)
+	query := repo.db.Model(&contact{}).
+		Begin().
+		Create(&req)
 
-		err = query.Error
-		if err != nil {
-			query.Rollback()
-			return
-		}
-
-		err = query.Commit().Error
+	err = query.Error
+	if err != nil {
+		query.Rollback()
+		return
 	}
+
+	err = query.Commit().Error
 
 	return
 }
@@ -58,7 +55,6 @@ func (repo *contactgormhttp) Update(id int, req model.ContactRequest) (err error
 	}
 
 	err = query.Commit().Error
-	query.Commit()
 
 	return
 }
