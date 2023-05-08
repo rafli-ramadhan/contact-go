@@ -10,6 +10,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var (
@@ -71,21 +72,24 @@ func (dbOpt dbOption) GetMysqlGormConnection() (*gorm.DB, error) {
 	}
 
 	// customize using mysql.New()
-	db, err := gorm.Open(
-		mysql.New(
-			mysql.Config{
-				DriverName: "mysql",
-				DSN:		connString,
-			},
-		), &gorm.Config{},
-	)
-
 	// db, err := gorm.Open(
-	// 	mysql.Open(connString), &gorm.Config{
-	// 		SkipDefaultTransaction: true,
-	// 		PrepareStmt:			true,
-	// 	},
+	// 	mysql.New(
+	// 		mysql.Config{
+	// 			DriverName: "mysql",
+	// 			DSN:		connString,
+	// 		},
+	// 	), &gorm.Config{
+	// 		Logger: newLogger,
+	// },
 	// )
+
+	db, err := gorm.Open(
+		mysql.Open(connString), &gorm.Config{
+			Logger: 				logger.Default.LogMode(logger.Info),
+			SkipDefaultTransaction: true,
+			PrepareStmt:			true,
+		},
+	)
 	if err != nil {
 		log.Print(err)
 		return nil, err
