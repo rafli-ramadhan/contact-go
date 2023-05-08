@@ -8,10 +8,14 @@ import (
 	model "contact-go/model"
 )
 
-type contactjson struct {}
+type contactjson struct {
+	jsonPath string
+}
 
-func NewContactJsonRepository() *contactjson {
-	return &contactjson{}
+func NewContactJsonRepository(jsonPath string) *contactjson {
+	return &contactjson{
+		jsonPath: jsonPath,
+	}
 }
 
 func (repo *contactjson) getLastID() (lastID int, err error) {
@@ -51,7 +55,7 @@ func (repo *contactjson) GetIndexById(id int) (index int, value model.Contact, e
 
 func (repo *contactjson) updateJSON(list []model.Contact) (err error) {
 	// struct -> JSON
-	write, err := os.Create("data/contact.txt")
+	write, err := os.Create(repo.jsonPath)
 	if err != nil {
 		return
 	}
@@ -62,7 +66,7 @@ func (repo *contactjson) updateJSON(list []model.Contact) (err error) {
 
 func (repo *contactjson) List() (result []model.Contact, err error) {
 	// JSON -> struct
-	reader, err := os.Open("data/contact.txt")
+	reader, err := os.Open(repo.jsonPath)
 	if err != nil {
 		return
 	}

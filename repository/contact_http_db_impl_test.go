@@ -24,7 +24,7 @@ type Mysqlclient struct {
 	repo ContactRepositorier
 }
 
-// set up env
+// set up sql mock
 func (client *Mysqlclient) SetupTest() {
 	db, mock, err := sqlmock.New()
 	if err != nil {

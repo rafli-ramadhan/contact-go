@@ -20,7 +20,7 @@ func main() {
 
 	switch config.Storage {
 	case "json":
-		contactRepo := repository.NewContactJsonRepository()
+		contactRepo := repository.NewContactJsonRepository("../data/contact.txt")
 		contactHandler := handler.NewContactHttpJsonHandler(contactRepo)
 		HTTPJsonServer(config, contactHandler)
 	case "mysql":
@@ -33,12 +33,7 @@ func main() {
 		contacHandler := handler.NewContactHttpDbHandler(useCase)
 		HTTPDBServer(config, contacHandler)
 	case "mysql-gorm":
-		dbCOnn, err := client.GetDBConnection(config.Storage).GetMysqlGormConnection()
-		if err != nil {
-			panic(err)
-		}
-
-		db, err := dbCOnn.DB()
+		db, err := client.GetDBConnection(config.Storage).GetMysqlGormConnection()
 		if err != nil {
 			panic(err)
 		}

@@ -81,9 +81,9 @@
 				
 				<option value="file12">contact-go/repository/contact_http_db_impl.go (100.0%)</option>
 				
-				<option value="file13">contact-go/repository/contact_http_json_impl.go (0.0%)</option>
+				<option value="file13">contact-go/repository/contact_http_json_impl.go (90.3%)</option>
 				
-				<option value="file14">contact-go/repository/contact_impl.go (76.3%)</option>
+				<option value="file14">contact-go/repository/contact_impl.go (86.8%)</option>
 				
 				<option value="file15">contact-go/usecase/contact_http_impl.go (100.0%)</option>
 				
@@ -250,8 +250,8 @@ func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB, err error) <span class="
         return</span>
 }
 
-func (dbOpt dbOption) GetMysqlGormConnection() (db *gorm.DB, err error) <span class="cov8" title="1">{
-        var driver gorm.Dialector
+func (dbOpt dbOption) GetMysqlGormConnection() (*gorm.DB, error) <span class="cov8" title="1">{
+        var connString string
         if dbOpt.Database == "mysql-gorm" </span><span class="cov8" title="1">{
                 // "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&amp;parseTime=True&amp;loc=Local"
                 connString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%v?charset=utf8mb4&amp;parseTime=True&amp;loc=Local", 
@@ -261,38 +261,34 @@ func (dbOpt dbOption) GetMysqlGormConnection() (db *gorm.DB, err error) <span cl
                         conDB.Mysqlconf.Port, 
                         conDB.Mysqlconf.Database,
                 )
-                driver = mysql.Open(connString)
-        }</span> else<span class="cov8" title="1"> {
-                driver = mysql.Open("")
         }</span>
 
         // customize using mysql.New()
-        // db, err = gorm.Open(
-        //         mysql.New(
-        //                 mysql.Config{
-        //                         DriverName: "mysql",
-        //                         DSN:                connString,
-        //                 },
-        //         ), &amp;gorm.Config{},
-        // )
-
-        <span class="cov8" title="1">db, err = gorm.Open(
-                driver, &amp;gorm.Config{
-                        SkipDefaultTransaction: true,
-                        PrepareStmt:                        true,
-                },
+        <span class="cov8" title="1">db, err := gorm.Open(
+                mysql.New(
+                        mysql.Config{
+                                DriverName: "mysql",
+                                DSN:                connString,
+                        },
+                ), &amp;gorm.Config{},
         )
+
+        // db, err := gorm.Open(
+        //         mysql.Open(connString), &amp;gorm.Config{
+        //                 SkipDefaultTransaction: true,
+        //                 PrepareStmt:                        true,
+        //         },
+        // )
         if err != nil </span><span class="cov8" title="1">{
-                log.Print("EROROROROREFJKJDSF")
                 log.Print(err)
-                return
+                return nil, err
         }</span>
 
         <span class="cov8" title="1">db.Begin()
 
         log.Printf("Running mysql on %s on port %s\n", conDB.Mysqlconf.Host, conDB.Mysqlconf.Port)
 
-        return</span>
+        return db, nil</span>
 }</pre>
 		
 		<pre class="file" id="file3" style="display: none">package handler
@@ -738,7 +734,7 @@ func main() <span class="cov0" title="0">{
 
         <span class="cov0" title="0">switch config.Storage </span>{
         case "json":<span class="cov0" title="0">
-                contactRepo := repository.NewContactJsonRepository()
+                contactRepo := repository.NewContactJsonRepository("../data/contact.txt")
                 contactHandler := handler.NewContactHttpJsonHandler(contactRepo)
                 HTTPJsonServer(config, contactHandler)</span>
         case "mysql":<span class="cov0" title="0">
@@ -751,12 +747,7 @@ func main() <span class="cov0" title="0">{
                 contacHandler := handler.NewContactHttpDbHandler(useCase)
                 HTTPDBServer(config, contacHandler)</span>
         case "mysql-gorm":<span class="cov0" title="0">
-                dbCOnn, err := client.GetDBConnection(config.Storage).GetMysqlGormConnection()
-                if err != nil </span><span class="cov0" title="0">{
-                        panic(err)</span>
-                }
-
-                <span class="cov0" title="0">db, err := dbCOnn.DB()
+                db, err := client.GetDBConnection(config.Storage).GetMysqlGormConnection()
                 if err != nil </span><span class="cov0" title="0">{
                         panic(err)</span>
                 }
@@ -989,148 +980,84 @@ func (m *JsonRepoMock) List() (result []model.Contact, err error) <span class="c
 
 import (
         "contact-go/model"
-        //"context"
-        "database/sql"
-        //"log"
-        //"time"
-
-        // "gorm.io/gorm"
+        // "database/sql"
+        "gorm.io/gorm"
 )
 
 type contactgormhttp struct{
-        db *sql.DB
+        db *gorm.DB
 }
 
-func NewContactGormHTTPRepository(client *sql.DB) *contactgormhttp <span class="cov0" title="0">{
+func NewContactGormHTTPRepository(client *gorm.DB) *contactgormhttp <span class="cov0" title="0">{
         return &amp;contactgormhttp{
                 db: client,
         }
 }</span>
 
+type contact struct {
+        Name   string        `gorm:"column:name" json:"name"`
+        NoTelp string        `gorm:"column:no_telp" json:"no_telp"`
+}
+
 func (repo *contactgormhttp) List() (result []model.Contact, err error) <span class="cov0" title="0">{
-        // ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-        // defer cancel()
-
-        // // prepare statement
-        // query := `SELECT id, name, no_telp FROM contact`
-        // stmt, err := repo.db.PrepareContext(ctx, query)
-        // if err != nil {
-        //         log.Print("prepare list")
-        //         return
-        // }
-
-        // res, err := stmt.QueryContext(ctx)
-        // if err != nil {
-        //         return
-        // }
-
-        // for res.Next() {
-        //         var temp model.Contact
-        //         res.Scan(&amp;temp.Id, &amp;temp.Name, &amp;temp.NoTelp)
-        //         result = append(result, temp)
-        // }
-
+        query := repo.db.Model(&amp;contact{}).Find(&amp;result)
+        err = query.Error
         return
 }</span>
 
 func (repo *contactgormhttp) Add(req []model.ContactRequest) (result []model.Contact, err error) <span class="cov0" title="0">{
-        // ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
-        // defer cancel()
+        for _, v := range req </span><span class="cov0" title="0">{
+                query := repo.db.Model(&amp;contact{}).
+                        Begin().
+                        Create(&amp;v)
 
-        // query := `INSERT INTO contact (name, no_telp) value (?,?)`
-        // trx, err := repo.db.BeginTx(ctx, nil)
-        // if err != nil {
-        //         return
-        // }
+                err = query.Error
+                if err != nil </span><span class="cov0" title="0">{
+                        query.Rollback()
+                        return
+                }</span>
 
-        // stmt, err := repo.db.PrepareContext(ctx, query)
-        // if err != nil {
-        //         log.Print("prepare add")
-        //         return
-        // }
+                <span class="cov0" title="0">err = query.Commit().Error</span>
+        }
 
-        // for _, v := range req {
-        //         res, err := stmt.ExecContext(ctx, v.Name, v.NoTelp)
-        //         if err != nil {
-        //                 trx.Rollback()
-        //                 return []model.Contact{}, err
-        //         }
-
-        //         lastID, err := res.LastInsertId()
-        //         if err != nil {
-        //                 return []model.Contact{}, err
-        //         }
-
-        //         result = append(result, model.Contact{
-        //                 Id:           int(lastID),
-        //                 Name:         v.Name,
-        //                 NoTelp: v.NoTelp,
-        //         })
-        // }
-
-        // trx.Commit()
-
-        return
-}</span>
+        <span class="cov0" title="0">return</span>
+}
 
 func (repo *contactgormhttp) Update(id int, req model.ContactRequest) (err error) <span class="cov0" title="0">{
-        // defer repo.db.Close()
+        query := repo.db.Model(&amp;contact{}).
+                Begin().
+                Where("id", id).
+                Updates(req)
 
-        // ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-        // defer cancel()
+        err = query.Error
+        if err != nil </span><span class="cov0" title="0">{
+                query.Rollback()
+                return
+        }</span>
 
-        // trx, err := repo.db.BeginTx(ctx, nil)
-        // if err != nil {
-        //         return
-        // }
+        <span class="cov0" title="0">err = query.Commit().Error
+        query.Commit()
 
-        // query := `UPDATE contact SET name = ?, no_telp = ? WHERE id = ?`
-        // stmt, err := repo.db.PrepareContext(ctx, query)
-        // if err != nil {
-        //         log.Print("prepare update")
-        //         return
-        // }
-
-        // _, err = stmt.ExecContext(ctx, req.Name, req.NoTelp, id)
-        // if err != nil {
-        //         trx.Rollback()
-        //         return
-        // }
-
-        // trx.Commit()
-
-        return
-}</span>
+        return</span>
+}
 
 func (repo *contactgormhttp) Delete(id int) (err error) <span class="cov0" title="0">{
-        // defer repo.db.Close()
+        query := repo.db.Model(&amp;contact{}).
+                Begin().
+                Where("id", id).
+                Delete(contact{})
 
-        // ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-        // defer cancel()
+        err = query.Error
+        if err != nil </span><span class="cov0" title="0">{
+                query.Rollback()
+                return
+        }</span>
 
-        // trx, err := repo.db.BeginTx(ctx, nil)
-        // if err != nil {
-        //         return
-        // }
+        <span class="cov0" title="0">err = query.Commit().Error
+        query.Commit()
 
-        // query := `DELETE FROM contact WHERE id = ?`
-        // stmt, err := repo.db.PrepareContext(ctx, query)
-        // if err != nil {
-        //         log.Print("prepare delete")
-        //         return
-        // }
-
-        // _, err = stmt.ExecContext(ctx, id)
-        // if err != nil {
-        //         trx.Rollback()
-        //         return
-        // }
-
-        // trx.Commit()
-
-        return
-}</span>
-</pre>
+        return</span>
+}</pre>
 		
 		<pre class="file" id="file12" style="display: none">package repository
 
@@ -1291,83 +1218,87 @@ import (
         model "contact-go/model"
 )
 
-type contactjson struct {}
+type contactjson struct {
+        jsonPath string
+}
 
-func NewContactJsonRepository() *contactjson <span class="cov0" title="0">{
-        return &amp;contactjson{}
+func NewContactJsonRepository(jsonPath string) *contactjson <span class="cov8" title="1">{
+        return &amp;contactjson{
+                jsonPath: jsonPath,
+        }
 }</span>
 
-func (repo *contactjson) getLastID() (lastID int, err error) <span class="cov0" title="0">{
+func (repo *contactjson) getLastID() (lastID int, err error) <span class="cov8" title="1">{
         list, err := repo.List()
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov0" title="0">if len(list) == 0 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if len(list) == 0 </span><span class="cov0" title="0">{
                 lastID = 0
-        }</span> else<span class="cov0" title="0"> {
-                for _, v := range list </span><span class="cov0" title="0">{
-                        if lastID &lt; int(v.Id) </span><span class="cov0" title="0">{
+        }</span> else<span class="cov8" title="1"> {
+                for _, v := range list </span><span class="cov8" title="1">{
+                        if lastID &lt; int(v.Id) </span><span class="cov8" title="1">{
                                 lastID = int(v.Id)
                         }</span>
                 }
         }
 
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }
 
-func (repo *contactjson) GetIndexById(id int) (index int, value model.Contact, err error) <span class="cov0" title="0">{
+func (repo *contactjson) GetIndexById(id int) (index int, value model.Contact, err error) <span class="cov8" title="1">{
         list, err := repo.List()
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov0" title="0">for i, v := range list </span><span class="cov0" title="0">{
-                if v.Id == id </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">for i, v := range list </span><span class="cov8" title="1">{
+                if v.Id == id </span><span class="cov8" title="1">{
                         index = int(i)
                         value = v
                         return index, value, nil
                 }</span>
         }
-        <span class="cov0" title="0">return -1, model.Contact{}, errors.New("id not found")</span>
+        <span class="cov8" title="1">return -1, model.Contact{}, errors.New("id not found")</span>
 }
 
-func (repo *contactjson) updateJSON(list []model.Contact) (err error) <span class="cov0" title="0">{
+func (repo *contactjson) updateJSON(list []model.Contact) (err error) <span class="cov8" title="1">{
         // struct -&gt; JSON
-        write, err := os.Create("data/contact.txt")
+        write, err := os.Create(repo.jsonPath)
         if err != nil </span><span class="cov0" title="0">{
                 return
         }</span>
-        <span class="cov0" title="0">encoder := json.NewEncoder(write)
+        <span class="cov8" title="1">encoder := json.NewEncoder(write)
         encoder.Encode(list)
         return</span>
 }
 
-func (repo *contactjson) List() (result []model.Contact, err error) <span class="cov0" title="0">{
+func (repo *contactjson) List() (result []model.Contact, err error) <span class="cov8" title="1">{
         // JSON -&gt; struct
-        reader, err := os.Open("data/contact.txt")
-        if err != nil </span><span class="cov0" title="0">{
+        reader, err := os.Open(repo.jsonPath)
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
-        <span class="cov0" title="0">decoder := json.NewDecoder(reader)
+        <span class="cov8" title="1">decoder := json.NewDecoder(reader)
         decoder.Decode(&amp;result)
 
         return</span>
 }
 
-func (repo *contactjson) Add(req []model.ContactRequest) (result []model.Contact, err error) <span class="cov0" title="0">{
+func (repo *contactjson) Add(req []model.ContactRequest) (result []model.Contact, err error) <span class="cov8" title="1">{
         // JSON to struct
         list, err := repo.List()
+        if err != nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">lastID, err := repo.getLastID()
         if err != nil </span><span class="cov0" title="0">{
                 return
         }</span>
 
-        <span class="cov0" title="0">lastID, err := repo.getLastID()
-        if err != nil </span><span class="cov0" title="0">{
-                return
-        }</span>
-
-        <span class="cov0" title="0">for i, v := range req </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">for i, v := range req </span><span class="cov8" title="1">{
                 newContact := model.Contact{
                         Id:     lastID+1+i,
                         Name:          v.Name,
@@ -1377,33 +1308,33 @@ func (repo *contactjson) Add(req []model.ContactRequest) (result []model.Contact
                 result = append(result, newContact)
         }</span>
 
-        <span class="cov0" title="0">err = repo.updateJSON(list)
+        <span class="cov8" title="1">err = repo.updateJSON(list)
         if err != nil </span><span class="cov0" title="0">{
                 return
         }</span>
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }
 
-func (repo *contactjson) Update(id int, req model.ContactRequest) (err error) <span class="cov0" title="0">{
+func (repo *contactjson) Update(id int, req model.ContactRequest) (err error) <span class="cov8" title="1">{
         index, value, err := repo.GetIndexById(id)
+        if err != nil </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">list, err := repo.List()
         if err != nil </span><span class="cov0" title="0">{
                 return
         }</span>
 
-        <span class="cov0" title="0">list, err := repo.List()
-        if err != nil </span><span class="cov0" title="0">{
-                return
-        }</span>
-
-        <span class="cov0" title="0">if req.Name == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if req.Name == "" </span><span class="cov8" title="1">{
                 req.Name = value.Name
         }</span>
 
-        <span class="cov0" title="0">if req.NoTelp == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if req.NoTelp == "" </span><span class="cov8" title="1">{
                 req.NoTelp = value.NoTelp
         }</span>
 
-        <span class="cov0" title="0">list[index] = model.Contact{
+        <span class="cov8" title="1">list[index] = model.Contact{
                 Id:     id,
                 Name:   req.Name,
                 NoTelp: req.NoTelp,
@@ -1413,28 +1344,28 @@ func (repo *contactjson) Update(id int, req model.ContactRequest) (err error) <s
         if err != nil </span><span class="cov0" title="0">{
                 return
         }</span>
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }
 
-func (repo *contactjson) Delete(id int) (err error) <span class="cov0" title="0">{
+func (repo *contactjson) Delete(id int) (err error) <span class="cov8" title="1">{
         list, err := repo.List()
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov0" title="0">index, _, err := repo.GetIndexById(id)
-        if err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">index, _, err := repo.GetIndexById(id)
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov0" title="0">deletedItemIndex := index
+        <span class="cov8" title="1">deletedItemIndex := index
         list = append(list[:deletedItemIndex], list[deletedItemIndex+1:]...)
 
         err = repo.updateJSON(list)
         if err != nil </span><span class="cov0" title="0">{
                 return
         }</span>
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }</pre>
 		
 		<pre class="file" id="file14" style="display: none">package repository
@@ -1474,7 +1405,7 @@ func (repo *repository) GetIndexById(id int) (index int, value model.Contact, er
                         return index, value, nil
                 }</span>
         }
-        <span class="cov0" title="0">return -1, model.Contact{}, errors.New("id not found")</span>
+        <span class="cov8" title="1">return -1, model.Contact{}, errors.New("id not found")</span>
 }
 
 func (repo *repository) List() ([]model.Contact, error) <span class="cov8" title="1">{
@@ -1506,11 +1437,11 @@ func (repo *repository) Update(id int, req model.ContactRequest) (err error) <sp
                 return
         }</span>
 
-        <span class="cov8" title="1">if req.Name == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if req.Name == "" </span><span class="cov8" title="1">{
                 req.Name = value.Name
         }</span>
 
-        <span class="cov8" title="1">if req.NoTelp == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if req.NoTelp == "" </span><span class="cov8" title="1">{
                 req.NoTelp = value.NoTelp
         }</span>
 
@@ -1525,7 +1456,7 @@ func (repo *repository) Update(id int, req model.ContactRequest) (err error) <sp
 
 func (repo *repository) Delete(id int) (err error) <span class="cov8" title="1">{
         index, _, err := repo.GetIndexById(id)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 

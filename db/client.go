@@ -57,8 +57,8 @@ func (dbOpt dbOption) GetMysqlConnection() (db *sql.DB, err error) {
 	return
 }
 
-func (dbOpt dbOption) GetMysqlGormConnection() (db *gorm.DB, err error) {
-	var driver gorm.Dialector
+func (dbOpt dbOption) GetMysqlGormConnection() (*gorm.DB, error) {
+	var connString string
 	if dbOpt.Database == "mysql-gorm" {
 		// "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
 		connString = fmt.Sprintf("%s:%s@tcp(%s:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local", 
@@ -68,36 +68,32 @@ func (dbOpt dbOption) GetMysqlGormConnection() (db *gorm.DB, err error) {
 			conDB.Mysqlconf.Port, 
 			conDB.Mysqlconf.Database,
 		)
-		driver = mysql.Open(connString)
-	} else {
-		driver = mysql.Open("")
 	}
 
 	// customize using mysql.New()
-	// db, err = gorm.Open(
-	// 	mysql.New(
-	// 		mysql.Config{
-	// 			DriverName: "mysql",
-	// 			DSN:		connString,
-	// 		},
-	// 	), &gorm.Config{},
-	// )
-
-	db, err = gorm.Open(
-		driver, &gorm.Config{
-			SkipDefaultTransaction: true,
-			PrepareStmt:			true,
-		},
+	db, err := gorm.Open(
+		mysql.New(
+			mysql.Config{
+				DriverName: "mysql",
+				DSN:		connString,
+			},
+		), &gorm.Config{},
 	)
+
+	// db, err := gorm.Open(
+	// 	mysql.Open(connString), &gorm.Config{
+	// 		SkipDefaultTransaction: true,
+	// 		PrepareStmt:			true,
+	// 	},
+	// )
 	if err != nil {
-		log.Print("EROROROROREFJKJDSF")
 		log.Print(err)
-		return
+		return nil, err
 	}
 
 	db.Begin()
 
 	log.Printf("Running mysql on %s on port %s\n", conDB.Mysqlconf.Host, conDB.Mysqlconf.Port)
 
-	return
+	return db, nil
 }
