@@ -4,6 +4,7 @@ import (
 	"contact-go/model"
 	"contact-go/repository"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -81,6 +82,7 @@ func (uc *usecase) Add(req []model.ContactRequest) (model.ContactResponse, error
 	}
 
 	res, err := uc.repo.Add(req)
+	fmt.Println(res)
 	if err != nil {
 		return model.ContactResponse{
 			Status:  http.StatusInternalServerError,

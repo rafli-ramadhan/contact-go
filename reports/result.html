@@ -75,7 +75,7 @@
 				
 				<option value="file9">contact-go/mocks/contact_http_impl_usecase_mock.go (100.0%)</option>
 				
-				<option value="file10">contact-go/repository/contact_http_db_gorm_impl.go (70.4%)</option>
+				<option value="file10">contact-go/repository/contact_http_db_gorm_impl.go (100.0%)</option>
 				
 				<option value="file11">contact-go/repository/contact_http_db_impl.go (100.0%)</option>
 				
@@ -956,10 +956,13 @@ func (m *UsecaseMock) Delete(idStr string) (model.ContactResponse, error) <span 
 
 import (
         "contact-go/model"
+        "context"
+        "time"
+
         "gorm.io/gorm"
 )
 
-type contactgormhttp struct{
+type contactgormhttp struct {
         db *gorm.DB
 }
 
@@ -970,67 +973,68 @@ func NewContactGormHTTPRepository(client *gorm.DB) *contactgormhttp <span class=
 }</span>
 
 type contact struct {
-        Name   string        `gorm:"column:name" json:"name"`
-        NoTelp string        `gorm:"column:no_telp" json:"no_telp"`
+        Name   string `gorm:"column:name" json:"name"`
+        NoTelp string `gorm:"column:no_telp" json:"no_telp"`
 }
 
 func (repo *contactgormhttp) List() (result []model.Contact, err error) <span class="cov8" title="1">{
-        query := repo.db.Model(&amp;contact{}).Find(&amp;result)
+        ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+        defer cancel()
+
+        query := repo.db.Model(&amp;contact{}).WithContext(ctx).Find(&amp;result)
         err = query.Error
         return
 }</span>
 
 func (repo *contactgormhttp) Add(req []model.ContactRequest) (result []model.Contact, err error) <span class="cov8" title="1">{
-        query := repo.db.Model(&amp;contact{}).
-                Begin().
-                Create(&amp;req)
+        ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+        defer cancel()
 
-        err = query.Error
-        if err != nil </span><span class="cov8" title="1">{
-                query.Rollback()
-                return
+        var newContacts []model.Contact
+
+        for _, contact := range req </span><span class="cov8" title="1">{
+                newContacts = append(newContacts, model.Contact{
+                        Name:   contact.Name,
+                        NoTelp: contact.NoTelp,
+                })
+        }</span>
+        <span class="cov8" title="1">query := repo.db.Model(&amp;model.Contact{}).WithContext(ctx).
+                Create(&amp;newContacts)
+
+        if err = query.Error; err != nil </span><span class="cov8" title="1">{
+                return result, err
         }</span>
 
-        <span class="cov0" title="0">err = query.Commit().Error
-
-        return</span>
+        <span class="cov8" title="1">return newContacts, err</span>
 }
 
 func (repo *contactgormhttp) Update(id int, req model.ContactRequest) (err error) <span class="cov8" title="1">{
-        query := repo.db.Model(&amp;contact{}).
-                Begin().
+        ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+        defer cancel()
+
+        query := repo.db.Model(&amp;contact{}).WithContext(ctx).
                 Where("id", id).
                 Updates(req)
 
-        err = query.Error
-        if err != nil </span><span class="cov8" title="1">{
-                query.Rollback()
+        if err = query.Error; err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov0" title="0">err = query.Commit().Error
-        query.Commit()
-
-        return</span>
+        <span class="cov8" title="1">return</span>
 }
 
 func (repo *contactgormhttp) Delete(id int) (err error) <span class="cov8" title="1">{
         query := repo.db.Model(&amp;contact{}).
-                Begin().
                 Where("id", id).
                 Delete(contact{})
 
-        err = query.Error
-        if err != nil </span><span class="cov8" title="1">{
-                query.Rollback()
+        if err = query.Error; err != nil </span><span class="cov8" title="1">{
                 return
         }</span>
 
-        <span class="cov0" title="0">err = query.Commit().Error
-        query.Commit()
-
-        return</span>
-}</pre>
+        <span class="cov8" title="1">return</span>
+}
+</pre>
 		
 		<pre class="file" id="file11" style="display: none">package repository
 
@@ -1444,6 +1448,7 @@ import (
         "contact-go/model"
         "contact-go/repository"
         "errors"
+        "fmt"
         "net/http"
         "strconv"
 )
@@ -1521,6 +1526,7 @@ func (uc *usecase) Add(req []model.ContactRequest) (model.ContactResponse, error
         }
 
         <span class="cov8" title="1">res, err := uc.repo.Add(req)
+        fmt.Println(res)
         if err != nil </span><span class="cov8" title="1">{
                 return model.ContactResponse{
                         Status:  http.StatusInternalServerError,

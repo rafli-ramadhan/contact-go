@@ -6,15 +6,15 @@ type ContactRequest struct {
 }
 
 type Contact struct {
-	Id     int
+	Id     int `gorm:"primaryKey"`
 	Name   string
 	NoTelp string
 }
 
 type ContactResponse struct {
-	Status  int			`json:"status"`
-	Message string		`json:"message"`
-	Data	[]Contact	`json:"data"`
+	Status  int       `json:"status"`
+	Message string    `json:"message"`
+	Data    []Contact `json:"data"`
 }
 
 var ContactSlice []Contact = []Contact{}

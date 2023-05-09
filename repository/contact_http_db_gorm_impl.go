@@ -2,10 +2,13 @@ package repository
 
 import (
 	"contact-go/model"
+	"context"
+	"time"
+
 	"gorm.io/gorm"
 )
 
-type contactgormhttp struct{
+type contactgormhttp struct {
 	db *gorm.DB
 }
 
@@ -16,63 +19,64 @@ func NewContactGormHTTPRepository(client *gorm.DB) *contactgormhttp {
 }
 
 type contact struct {
-	Name   string	`gorm:"column:name" json:"name"`
-	NoTelp string	`gorm:"column:no_telp" json:"no_telp"`
+	Name   string `gorm:"column:name" json:"name"`
+	NoTelp string `gorm:"column:no_telp" json:"no_telp"`
 }
 
 func (repo *contactgormhttp) List() (result []model.Contact, err error) {
-	query := repo.db.Model(&contact{}).Find(&result)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := repo.db.Model(&contact{}).WithContext(ctx).Find(&result)
 	err = query.Error
 	return
 }
 
 func (repo *contactgormhttp) Add(req []model.ContactRequest) (result []model.Contact, err error) {
-	query := repo.db.Model(&contact{}).
-		Begin().
-		Create(&req)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-	err = query.Error
-	if err != nil {
-		query.Rollback()
-		return
+	var newContacts []model.Contact
+
+	for _, contact := range req {
+		newContacts = append(newContacts, model.Contact{
+			Name:   contact.Name,
+			NoTelp: contact.NoTelp,
+		})
+	}
+	query := repo.db.Model(&model.Contact{}).WithContext(ctx).
+		Create(&newContacts)
+
+	if err = query.Error; err != nil {
+		return result, err
 	}
 
-	err = query.Commit().Error
-
-	return
+	return newContacts, err
 }
 
 func (repo *contactgormhttp) Update(id int, req model.ContactRequest) (err error) {
-	query := repo.db.Model(&contact{}).
-		Begin().
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := repo.db.Model(&contact{}).WithContext(ctx).
 		Where("id", id).
 		Updates(req)
 
-	err = query.Error
-	if err != nil {
-		query.Rollback()
+	if err = query.Error; err != nil {
 		return
 	}
-
-	err = query.Commit().Error
 
 	return
 }
 
 func (repo *contactgormhttp) Delete(id int) (err error) {
 	query := repo.db.Model(&contact{}).
-		Begin().
 		Where("id", id).
 		Delete(contact{})
 
-	err = query.Error
-	if err != nil {
-		query.Rollback()
+	if err = query.Error; err != nil {
 		return
 	}
-
-	err = query.Commit().Error
-	query.Commit()
 
 	return
 }
